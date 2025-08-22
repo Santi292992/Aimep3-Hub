@@ -1,0 +1,307 @@
+-- Aimep3 Hub Mejorado - Versión Compacta
+-- Código optimizado para mejor experiencia de usuario
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Verificar si ya existe el menú y eliminarlo
+if playerGui:FindFirstChild("AimepHub") then
+    playerGui:FindFirstChild("AimepHub"):Destroy()
+end
+
+-- Crear ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AimepHub"
+screenGui.Parent = playerGui
+
+-- Frame principal (MÁS PEQUEÑO)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 260, 0, 140) -- Más pequeño: 260x140
+frame.Position = UDim2.new(0, 15, 0, 80)
+frame.BackgroundColor3 = Color3.new(0.08, 0.08, 0.12)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+
+-- Esquinas más redondeadas
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = frame
+
+-- Sombra sutil
+local shadow = Instance.new("Frame")
+shadow.Size = UDim2.new(1, 4, 1, 4)
+shadow.Position = UDim2.new(0, -2, 0, -2)
+shadow.BackgroundColor3 = Color3.new(0, 0, 0)
+shadow.BackgroundTransparency = 0.8
+shadow.BorderSizePixel = 0
+shadow.ZIndex = frame.ZIndex - 1
+shadow.Parent = frame
+
+local shadowCorner = Instance.new("UICorner")
+shadowCorner.CornerRadius = UDim.new(0, 12)
+shadowCorner.Parent = shadow
+
+-- Título más pequeño
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -22, 0, 25) -- Más pequeño
+title.BackgroundColor3 = Color3.new(0.15, 0.35, 0.75)
+title.Text = "Aimep3 Hub"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 14 -- Texto más pequeño
+title.Font = Enum.Font.GothamBold
+title.BorderSizePixel = 0
+title.Active = true
+title.Parent = frame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = title
+
+-- Botón cerrar más pequeño
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 20, 0, 20) -- Más pequeño
+closeButton.Position = UDim2.new(1, -22, 0, 2.5)
+closeButton.BackgroundColor3 = Color3.new(0.9, 0.2, 0.2)
+closeButton.Text = "×"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.TextSize = 14
+closeButton.Font = Enum.Font.GothamBold
+closeButton.BorderSizePixel = 0
+closeButton.Parent = frame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 10)
+closeCorner.Parent = closeButton
+
+-- Container para los botones más pequeño
+local buttonContainer = Instance.new("Frame")
+buttonContainer.Size = UDim2.new(1, -16, 1, -35)
+buttonContainer.Position = UDim2.new(0, 8, 0, 30)
+buttonContainer.BackgroundTransparency = 1
+buttonContainer.BorderSizePixel = 0
+buttonContainer.Parent = frame
+
+-- Función para crear botones más pequeños en grid
+local function createGridButton(name, text, color, row, col, script)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = UDim2.new(0.48, 0, 0, 30) -- Botones más pequeños: 30px de alto
+    button.Position = UDim2.new((col - 1) * 0.52, 0, (row - 1) * 0.38, 0) -- Posición ajustada
+    button.BackgroundColor3 = color
+    button.BorderSizePixel = 0
+    button.Text = text
+    button.TextColor3 = Color3.new(1, 1, 1)
+    button.TextSize = 9 -- Texto más pequeño
+    button.Font = Enum.Font.Gotham
+    button.Parent = buttonContainer
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6) -- Esquinas más pequeñas
+    corner.Parent = button
+    
+    -- Efectos hover más sutiles
+    local originalColor = color
+    local hoverColor = Color3.new(
+        math.min(color.R + 0.15, 1),
+        math.min(color.G + 0.15, 1),
+        math.min(color.B + 0.15, 1)
+    )
+    
+    button.MouseEnter:Connect(function()
+        local tween = TweenService:Create(button, 
+            TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {BackgroundColor3 = hoverColor, Size = UDim2.new(0.48, 1, 0, 32)} -- Efecto más pequeño
+        )
+        tween:Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        local tween = TweenService:Create(button, 
+            TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+            {BackgroundColor3 = originalColor, Size = UDim2.new(0.48, 0, 0, 30)}
+        )
+        tween:Play()
+    end)
+    
+    -- Función del botón (igual que antes)
+    button.MouseButton1Click:Connect(function()
+        print("Ejecutando " .. text:gsub("🚀 ", ""):gsub("⚡ ", ""):gsub("🔥 ", ""):gsub("🌶️ ", ""):gsub("🦘 ", ""):gsub("🔍 ", "") .. "...")
+        
+        if name == "ServerButton" then
+            -- Script especial para Server Finder
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/karlosedson/mkzhub/refs/heads/main/makerzjoiner.lua"))()
+            
+            spawn(function()
+                wait(0.5)
+                
+                local Players = game:GetService("Players")
+                local TweenService = game:GetService("TweenService")
+                local player = Players.LocalPlayer
+                local playerGui = player:WaitForChild("PlayerGui")
+                
+                if playerGui:FindFirstChild("KeyMenu") then
+                    playerGui:FindFirstChild("KeyMenu"):Destroy()
+                end
+                
+                local keyGui = Instance.new("ScreenGui")
+                keyGui.Name = "KeyMenu"
+                keyGui.ResetOnSpawn = false
+                keyGui.Parent = playerGui
+                
+                local keyFrame = Instance.new("Frame")
+                keyFrame.Size = UDim2.new(0, 120, 0, 35) -- Ventana de key más pequeña
+                keyFrame.Position = UDim2.new(0.5, -60, 0.5, -17.5)
+                keyFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+                keyFrame.BorderSizePixel = 0
+                keyFrame.Parent = keyGui
+                
+                local keyCorner = Instance.new("UICorner")
+                keyCorner.CornerRadius = UDim.new(0, 6)
+                keyCorner.Parent = keyFrame
+                
+                local keyLabel = Instance.new("TextLabel")
+                keyLabel.Size = UDim2.new(1, -12, 1, 0)
+                keyLabel.Position = UDim2.new(0, 4, 0, 0)
+                keyLabel.BackgroundTransparency = 1
+                keyLabel.Text = "MakerzV4"
+                keyLabel.TextColor3 = Color3.fromRGB(0, 255, 127)
+                keyLabel.TextSize = 10
+                keyLabel.Font = Enum.Font.Gotham
+                keyLabel.Parent = keyFrame
+                
+                local closeKey = Instance.new("TextButton")
+                closeKey.Size = UDim2.new(0, 10, 0, 10)
+                closeKey.Position = UDim2.new(1, -12, 0, 2)
+                closeKey.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+                closeKey.Text = "×"
+                closeKey.TextColor3 = Color3.new(1, 1, 1)
+                closeKey.TextSize = 7
+                closeKey.Font = Enum.Font.GothamBold
+                closeKey.BorderSizePixel = 0
+                closeKey.Parent = keyFrame
+                
+                local closeKeyCorner = Instance.new("UICorner")
+                closeKeyCorner.CornerRadius = UDim.new(0, 5)
+                closeKeyCorner.Parent = closeKey
+                
+                closeKey.MouseButton1Click:Connect(function()
+                    keyGui:Destroy()
+                end)
+                
+                keyFrame.Size = UDim2.new(0, 0, 0, 0)
+                local openTween = TweenService:Create(keyFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 120, 0, 35)})
+                openTween:Play()
+            end)
+        else
+            -- Scripts normales
+            loadstring(game:HttpGet(script))()
+        end
+        
+        print("Script ejecutado!")
+    end)
+    
+    return button
+end
+
+-- Función del botón cerrar
+closeButton.MouseButton1Click:Connect(function()
+    local closeTween = TweenService:Create(frame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
+    closeTween:Play()
+    closeTween.Completed:Connect(function()
+        screenGui:Destroy()
+    end)
+end)
+
+-- Efectos hover del botón cerrar
+closeButton.MouseEnter:Connect(function()
+    closeButton.BackgroundColor3 = Color3.new(1, 0.3, 0.3)
+end)
+
+closeButton.MouseLeave:Connect(function()
+    closeButton.BackgroundColor3 = Color3.new(0.9, 0.2, 0.2)
+end)
+
+-- Crear botones en grid (2 columnas, 3 filas)
+-- Fila 1
+createGridButton("MirandaButton", "🚀 MIRANDA", Color3.new(0, 0.7, 0.9), 1, 1, "https://pastefy.app/mTbfVy0H/raw")
+createGridButton("LennonButton", "⚡ LENNON", Color3.new(0.9, 0.3, 0.3), 1, 2, "https://gist.githubusercontent.com/UCT-hub/6e854cf34909099c3e34864c51195a7b/raw/a79b3575e80aba15385e52023e15d251e7f36ac9/LENONNHUBVIP")
+
+-- Fila 2  
+createGridButton("UglyButton", "🔥 UGLY", Color3.new(0.9, 0.5, 0.2), 2, 1, "https://api.luarmor.net/files/v3/loaders/d242fd0441c8bae1fe649c4cda8d937d.lua")
+createGridButton("ChilliButton", "🌶️ CHILLI", Color3.new(0.15, 0.7, 0.4), 2, 2, "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua")
+
+-- Fila 3
+createGridButton("JumpButton", "🦘 JUMP BOOST", Color3.new(0.7, 0.2, 0.8), 3, 1, "https://gist.githubusercontent.com/Fonojonzo226/c411680867aa71edd81ea7f3f3cac4f3/raw")
+createGridButton("ServerButton", "🔍 SERVER FINDER", Color3.new(0.2, 0.7, 0.7), 3, 2, "special")
+
+-- Sistema de arrastre mejorado
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+local function startDrag(input)
+    dragging = true
+    dragStart = input.Position
+    startPos = frame.Position
+    
+    -- Efecto visual al arrastrar
+    local dragTween = TweenService:Create(frame, TweenInfo.new(0.1), {BackgroundTransparency = 0.1})
+    dragTween:Play()
+end
+
+local function updateDrag(input)
+    if dragging then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end
+
+local function endDrag()
+    if dragging then
+        dragging = false
+        local releaseTween = TweenService:Create(frame, TweenInfo.new(0.1), {BackgroundTransparency = 0})
+        releaseTween:Play()
+    end
+end
+
+-- Conectar eventos de arrastre
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        startDrag(input)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        updateDrag(input)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        endDrag()
+    end
+end)
+
+-- Animación de entrada más pequeña
+frame.Size = UDim2.new(0, 0, 0, 0)
+local entranceTween = TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 260, 0, 140)})
+entranceTween:Play()
+
+print("Aimep3 Hub Compacto cargado!")
+print("🚀 Miranda (Script actualizado)")
+print("⚡ Lennon") 
+print("🔥 Ugly")
+print("🌶️ Chilli")
+print("🦘 Jump Boost")
+print("🔍 Server Finder")
+print("📱 Versión compacta 260x140px")
