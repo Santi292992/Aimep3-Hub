@@ -181,75 +181,8 @@ local function createGridButton(name, text, color, row, col, script)
     button.MouseButton1Click:Connect(function()
         print("🎮 Ejecutando " .. text:gsub("🚀 ", ""):gsub("⚡ ", ""):gsub("🔥 ", ""):gsub("🌶️ ", ""):gsub("🦘 ", ""):gsub("🔍 ", ""):gsub("🎮 ", "") .. "...")
         
-        if name == "ServerButton" then
-            -- Script especial para Server Finder
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/karlosedson/mkzhub/refs/heads/main/makerzjoiner.lua"))()
-            
-            spawn(function()
-                wait(0.5)
-                
-                local Players = game:GetService("Players")
-                local TweenService = game:GetService("TweenService")
-                local player = Players.LocalPlayer
-                local playerGui = player:WaitForChild("PlayerGui")
-                
-                if playerGui:FindFirstChild("KeyMenu") then
-                    playerGui:FindFirstChild("KeyMenu"):Destroy()
-                end
-                
-                local keyGui = Instance.new("ScreenGui")
-                keyGui.Name = "KeyMenu"
-                keyGui.ResetOnSpawn = false
-                keyGui.Parent = playerGui
-                
-                local keyFrame = Instance.new("Frame")
-                keyFrame.Size = UDim2.new(0, 130, 0, 40) -- Ventana de key más pequeña
-                keyFrame.Position = UDim2.new(0.5, -65, 0.5, -20)
-                keyFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-                keyFrame.BorderSizePixel = 0
-                keyFrame.Parent = keyGui
-                
-                local keyCorner = Instance.new("UICorner")
-                keyCorner.CornerRadius = UDim.new(0, 8)
-                keyCorner.Parent = keyFrame
-                
-                local keyLabel = Instance.new("TextLabel")
-                keyLabel.Size = UDim2.new(1, -14, 1, 0)
-                keyLabel.Position = UDim2.new(0, 7, 0, 0)
-                keyLabel.BackgroundTransparency = 1
-                keyLabel.Text = "🔑 MakerzV4"
-                keyLabel.TextColor3 = Color3.fromRGB(0, 255, 127)
-                keyLabel.TextSize = 11
-                keyLabel.Font = Enum.Font.GothamBold
-                keyLabel.Parent = keyFrame
-                
-                local closeKey = Instance.new("TextButton")
-                closeKey.Size = UDim2.new(0, 14, 0, 14)
-                closeKey.Position = UDim2.new(1, -16, 0, 2)
-                closeKey.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
-                closeKey.Text = "✕"
-                closeKey.TextColor3 = Color3.new(1, 1, 1)
-                closeKey.TextSize = 8
-                closeKey.Font = Enum.Font.GothamBold
-                closeKey.BorderSizePixel = 0
-                closeKey.Parent = keyFrame
-                
-                local closeKeyCorner = Instance.new("UICorner")
-                closeKeyCorner.CornerRadius = UDim.new(0, 6)
-                closeKeyCorner.Parent = closeKey
-                
-                closeKey.MouseButton1Click:Connect(function()
-                    keyGui:Destroy()
-                end)
-                
-                keyFrame.Size = UDim2.new(0, 0, 0, 0)
-                local openTween = TweenService:Create(keyFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 130, 0, 40)})
-                openTween:Play()
-            end)
-        else
-            -- Scripts normales
-            loadstring(game:HttpGet(script))()
-        end
+        -- Scripts normales para todos los botones
+        loadstring(game:HttpGet(script))()
         
         print("✅ Script ejecutado correctamente!")
     end)
@@ -294,16 +227,16 @@ end)
 
 -- Crear botones en grid compacto (2 columnas, 4 filas)
 -- Fila 1
-createGridButton("MirandaButton", "🚀 MIRANDA", Color3.fromRGB(0, 180, 230), 1, 1, "https://pastefy.app/TnWWJ4NS/raw")
-createGridButton("LennonButton", "⚡ LENNON", Color3.fromRGB(230, 76, 76), 1, 2, "https://gist.githubusercontent.com/UCT-hub/6e854cf34909099c3e34864c51195a7b/raw/a79b3575e80aba15385e52023e15d251e7f36ac9/LENONNHUBVIP")
+createGridButton("NamelessButton", "🚀 NAMELESS", Color3.fromRGB(0, 180, 230), 1, 1, "https://raw.githubusercontent.com/ily123950/Vulkan/refs/heads/main/Trx")
+createGridButton("LennonButton", "⚡ LENNON", Color3.fromRGB(230, 76, 76), 1, 2, "https://pastefy.app/J3oDjwQ5/raw")
 
 -- Fila 2  
-createGridButton("UglyButton", "🔥 UGLY", Color3.fromRGB(230, 128, 51), 2, 1, "https://api.luarmor.net/files/v3/loaders/d242fd0441c8bae1fe649c4cda8d937d.lua")
+createGridButton("LemonButton", "🔥 LEMON", Color3.fromRGB(230, 128, 51), 2, 1, "https://api.luarmor.net/files/v3/loaders/8f5b9e69ceb0a53e85782d465938a6c4.lua")
 createGridButton("ChilliButton", "🌶️ CHILLI", Color3.fromRGB(38, 178, 102), 2, 2, "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua")
 
 -- Fila 3
-createGridButton("JumpButton", "🦘 JUMP", Color3.fromRGB(178, 51, 204), 3, 1, "https://gist.githubusercontent.com/Fonojonzo226/c411680867aa71edd81ea7f3f3cac4f3/raw")
-createGridButton("ServerButton", "🔍 SERVER", Color3.fromRGB(51, 178, 178), 3, 2, "special")
+createGridButton("DelfiButton", "🦘 DELFI", Color3.fromRGB(178, 51, 204), 3, 1, "https://pastefy.app/pQxsA7BR/raw")
+createGridButton("MakerzButton", "🔍 MAKERZ", Color3.fromRGB(51, 178, 178), 3, 2, "https://github.com/karlosedson/mkzhub/raw/refs/heads/main/makerzstealer.lua")
 
 -- Fila 4
 createGridButton("AjjanButton", "🎮 AJJAN", Color3.fromRGB(204, 51, 153), 4, 1, "https://raw.githubusercontent.com/onliengamerop/Steal-a-brainrot/refs/heads/main/Protected_3771863424757750.lua.txt")
@@ -384,12 +317,12 @@ print("🚀 AIMEP3 HUB COMPACTO CARGADO!")
 print("🎮 ====================================")
 print("✨ Versión: Compacta 280x200px")
 print("📦 Botones disponibles:")
-print("   🚀 Miranda")
+print("   🚀 Nameless Hub")
 print("   ⚡ Lennon") 
-print("   🔥 Ugly")
+print("   🔥 Lemon Teleguiado")
 print("   🌶️ Chilli")
-print("   🦘 Jump")
-print("   🔍 Server")
+print("   🦘 Delfiscript")
+print("   🔍 Makerz")
 print("   🎮 Ajjan")
 print("   🔥 Server OP")
 print("🎮 ====================================")
