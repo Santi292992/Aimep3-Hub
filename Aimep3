@@ -20,8 +20,8 @@ screenGui.Parent = playerGui
 
 -- Frame principal COMPACTO (más pequeño)
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 280, 0, 200) -- Tamaño reducido: 280x200
-frame.Position = UDim2.new(0.5, -140, 0.5, -100) -- Centrado
+frame.Size = UDim2.new(0, 280, 0, 170) -- Tamaño aumentado para 4 botones: 280x170
+frame.Position = UDim2.new(0.5, -140, 0.5, -85) -- Centrado
 frame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 frame.BorderSizePixel = 0
 frame.Parent = screenGui
@@ -100,7 +100,7 @@ local function createGridButton(name, text, color, row, col, script)
     local button = Instance.new("TextButton")
     button.Name = name
     button.Size = UDim2.new(0.48, 0, 0, 32) -- BOTONES MÁS PEQUEÑOS: 32px de alto
-    button.Position = UDim2.new((col - 1) * 0.52, 0, (row - 1) * 0.24, 0) -- Espaciado compacto
+    button.Position = UDim2.new((col - 1) * 0.52, 0, (row - 1) * 0.35, 0) -- Espaciado más amplio
     button.BackgroundColor3 = color
     button.BorderSizePixel = 0
     button.Text = text
@@ -225,22 +225,14 @@ closeButton.MouseLeave:Connect(function()
     leaveTween:Play()
 end)
 
--- Crear botones en grid compacto (2 columnas, 4 filas)
+-- Crear botones en grid compacto (2 columnas, 2 filas)
 -- Fila 1
-createGridButton("NamelessButton", "🚀 NAMELESS", Color3.fromRGB(0, 180, 230), 1, 1, "https://raw.githubusercontent.com/ily123950/Vulkan/refs/heads/main/Trx")
-createGridButton("LennonButton", "⚡ LENNON", Color3.fromRGB(230, 76, 76), 1, 2, "https://pastefy.app/J3oDjwQ5/raw")
+createGridButton("MirandaButton", "🚀 MIRANDA", Color3.fromRGB(0, 180, 230), 1, 1, "https://pastefy.app/9YIyWc7E/raw")
+createGridButton("LennonButton", "⚡ LENNON", Color3.fromRGB(230, 76, 76), 1, 2, "https://pastefy.app/NU4lqGZe/raw")
 
--- Fila 2  
-createGridButton("LemonButton", "🔥 LEMON", Color3.fromRGB(230, 128, 51), 2, 1, "https://api.luarmor.net/files/v3/loaders/8f5b9e69ceb0a53e85782d465938a6c4.lua")
-createGridButton("ChilliButton", "🌶️ CHILLI", Color3.fromRGB(38, 178, 102), 2, 2, "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua")
-
--- Fila 3
-createGridButton("DelfiButton", "🦘 DELFI", Color3.fromRGB(178, 51, 204), 3, 1, "https://pastefy.app/pQxsA7BR/raw")
-createGridButton("MakerzButton", "🔍 MAKERZ", Color3.fromRGB(51, 178, 178), 3, 2, "https://github.com/karlosedson/mkzhub/raw/refs/heads/main/makerzstealer.lua")
-
--- Fila 4
-createGridButton("AjjanButton", "🎮 AJJAN", Color3.fromRGB(204, 51, 153), 4, 1, "https://raw.githubusercontent.com/onliengamerop/Steal-a-brainrot/refs/heads/main/Protected_3771863424757750.lua.txt")
-createGridButton("ServerOPButton", "🔥 SERVER OP", Color3.fromRGB(230, 153, 25), 4, 2, "https://raw.githubusercontent.com/rexzysab/stealabrainrot/refs/heads/main/main.lua")
+-- Fila 2
+createGridButton("ChilliButton", "🌶️ CHILLI", Color3.fromRGB(38, 178, 102), 2, 1, "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua")
+createGridButton("RobarButton", "💰 ROBAR", Color3.fromRGB(255, 165, 0), 2, 2, "https://pastefy.app/SGUJ4woe/raw")
 
 -- Sistema de arrastre compacto
 local dragging = false
@@ -306,8 +298,8 @@ frame.Position = UDim2.new(0.5, 0, 0.5, 0)
 frame.BackgroundTransparency = 1
 
 local entranceTween = TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-    Size = UDim2.new(0, 280, 0, 200),
-    Position = UDim2.new(0.5, -140, 0.5, -100),
+    Size = UDim2.new(0, 280, 0, 170),
+    Position = UDim2.new(0.5, -140, 0.5, -85),
     BackgroundTransparency = 0
 })
 entranceTween:Play()
@@ -315,15 +307,11 @@ entranceTween:Play()
 print("🎮 ====================================")
 print("🚀 AIMEP3 HUB COMPACTO CARGADO!")
 print("🎮 ====================================")
-print("✨ Versión: Compacta 280x200px")
+print("✨ Versión: Compacta 280x170px")
 print("📦 Botones disponibles:")
-print("   🚀 Nameless Hub")
+print("   🚀 Miranda")
 print("   ⚡ Lennon") 
-print("   🔥 Lemon Teleguiado")
 print("   🌶️ Chilli")
-print("   🦘 Delfiscript")
-print("   🔍 Makerz")
-print("   🎮 Ajjan")
-print("   🔥 Server OP")
+print("   💰 Robar")
 print("🎮 ====================================")
-print("💫 ¡Versión compacta lista!")
+print("💫 ¡Versión con 4 botones lista!")
