@@ -1,4 +1,4 @@
--- Aimep3 Hub Compacto - Versión Pequeña
+-- Aimep3 Hub Compacto - Versión Pequeñaa
 -- Diseño optimizado y más pequeño
 
 local Players = game:GetService("Players")
