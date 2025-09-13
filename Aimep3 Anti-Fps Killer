@@ -1,0 +1,288 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local UserInputService = game:GetService("UserInputService")
+
+-- ========== SCRIPT ANTI FPS KILLER CON RESTAURACIÓN ==========
+local savedAccessories = {}
+local antiFpsActive = false
+local connections = {}
+
+local function saveAccessoriesFromCharacter(character, playerName)
+    if not character then return end
+    
+    savedAccessories[playerName] = savedAccessories[playerName] or {}
+    
+    for _, item in ipairs(character:GetChildren()) do
+        if item:IsA("Accessory")
+            or item:IsA("LayeredClothing")
+            or item:IsA("Shirt")
+            or item:IsA("ShirtGraphic")
+            or item:IsA("Pants")
+            or item:IsA("BodyColors")
+            or item:IsA("CharacterMesh") then
+            
+            -- Guardar el item clonándolo
+            local clonedItem = item:Clone()
+            table.insert(savedAccessories[playerName], clonedItem)
+        end
+    end
+end
+
+local function removeAccessoriesFromCharacter(character)
+    if not character then return end
+    
+    for _, item in ipairs(character:GetChildren()) do
+        if item:IsA("Accessory")
+            or item:IsA("LayeredClothing")
+            or item:IsA("Shirt")
+            or item:IsA("ShirtGraphic")
+            or item:IsA("Pants")
+            or item:IsA("BodyColors")
+            or item:IsA("CharacterMesh") then
+            pcall(function() item:Destroy() end)
+        end
+    end
+end
+
+local function restoreAccessoriesForCharacter(character, playerName)
+    if not character or not savedAccessories[playerName] then return end
+    
+    for _, savedItem in ipairs(savedAccessories[playerName]) do
+        local restoredItem = savedItem:Clone()
+        pcall(function()
+            restoredItem.Parent = character
+        end)
+    end
+end
+
+local function saveAndRemoveAccessoriesFromAllPlayers()
+    for _, playerTarget in pairs(Players:GetPlayers()) do
+        if playerTarget.Character then
+            saveAccessoriesFromCharacter(playerTarget.Character, playerTarget.Name)
+            removeAccessoriesFromCharacter(playerTarget.Character)
+        end
+    end
+end
+
+local function restoreAccessoriesForAllPlayers()
+    for _, playerTarget in pairs(Players:GetPlayers()) do
+        if playerTarget.Character and savedAccessories[playerTarget.Name] then
+            restoreAccessoriesForCharacter(playerTarget.Character, playerTarget.Name)
+        end
+    end
+end
+
+local function startAntiFps()
+    if antiFpsActive then return end
+    antiFpsActive = true
+    
+    -- Primero guardar y remover accesorios de todos los jugadores actuales
+    saveAndRemoveAccessoriesFromAllPlayers()
+    
+    -- Conecta para novos jogadores que entram no servidor
+    connections[#connections + 1] = Players.PlayerAdded:Connect(function(newPlayer)
+        connections[#connections + 1] = newPlayer.CharacterAdded:Connect(function(character)
+            if antiFpsActive then
+                task.wait(0.2)
+                saveAccessoriesFromCharacter(character, newPlayer.Name)
+                removeAccessoriesFromCharacter(character)
+            end
+        end)
+        if newPlayer.Character and antiFpsActive then
+            task.defer(function()
+                saveAccessoriesFromCharacter(newPlayer.Character, newPlayer.Name)
+                removeAccessoriesFromCharacter(newPlayer.Character)
+            end)
+        end
+    end)
+    
+    -- Remove acessórios quando qualquer jogador atual respawna
+    for _, playerTarget in pairs(Players:GetPlayers()) do
+        connections[#connections + 1] = playerTarget.CharacterAdded:Connect(function(character)
+            if antiFpsActive then
+                task.wait(0.2)
+                saveAccessoriesFromCharacter(character, playerTarget.Name)
+                removeAccessoriesFromCharacter(character)
+            end
+        end)
+    end
+end
+
+local function stopAntiFps()
+    if not antiFpsActive then return end
+    antiFpsActive = false
+    
+    -- Restaurar accesorios a todos los jugadores
+    restoreAccessoriesForAllPlayers()
+    
+    -- Desconecta todos os eventos
+    for _, connection in pairs(connections) do
+        if connection then
+            connection:Disconnect()
+        end
+    end
+    connections = {}
+end
+
+-- ====== DIMENSIONES DEL MENU =======
+local SCALE = 0.8
+local PANEL_WIDTH, PANEL_HEIGHT = math.floor(200*SCALE), math.floor(100*SCALE)
+local PANEL_RADIUS = math.floor(12*SCALE)
+local TITLE_HEIGHT = math.floor(30*SCALE)
+local BTN_WIDTH = math.floor(0.85*PANEL_WIDTH)
+local BTN_HEIGHT = math.floor(32*SCALE)
+local BTN_RADIUS = math.floor(8*SCALE)
+local BTN_FONT_SIZE = math.floor(14*SCALE)
+local TITLE_FONT_SIZE = math.floor(18*SCALE)
+
+-- Remove menu anterior si existe
+local old = playerGui:FindFirstChild("Aimep3HubPanel")
+if old then old:Destroy() end
+
+-- ========== CREAR MENU UI ==========
+local gui = Instance.new("ScreenGui")
+gui.Name = "Aimep3HubPanel"
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
+
+local main = Instance.new("Frame", gui)
+main.Name = "MainPanel"
+main.Size = UDim2.new(0, PANEL_WIDTH, 0, PANEL_HEIGHT)
+main.Position = UDim2.new(0.5, -PANEL_WIDTH/2, 0, 50) -- CENTRO SUPERIOR
+main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+main.BorderSizePixel = 0
+main.Active = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, PANEL_RADIUS)
+
+-- Efecto de sombra
+local shadow = Instance.new("Frame", main)
+shadow.Name = "Shadow"
+shadow.Size = UDim2.new(1, 6, 1, 6)
+shadow.Position = UDim2.new(0, -3, 0, 3)
+shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+shadow.BackgroundTransparency = 0.7
+shadow.BorderSizePixel = 0
+shadow.ZIndex = main.ZIndex - 1
+Instance.new("UICorner", shadow).CornerRadius = UDim.new(0, PANEL_RADIUS)
+
+-- Sistema de arrastrar
+do
+    local dragging, dragInput, dragStart, startPos
+    main.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = main.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    main.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            local delta = input.Position - dragStart
+            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+-- Título
+local title = Instance.new("TextLabel", main)
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0, TITLE_HEIGHT)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.Text = "Aimep3 Hub"
+title.Font = Enum.Font.GothamBold
+title.TextSize = TITLE_FONT_SIZE
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextStrokeTransparency = 0.5
+title.TextStrokeColor3 = Color3.fromRGB(100, 100, 100)
+
+-- Función para crear botones toggle
+local function createToggleButton(parent, text, yPosition, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(0, BTN_WIDTH, 0, BTN_HEIGHT)
+    btn.Position = UDim2.new(0, (PANEL_WIDTH - BTN_WIDTH) / 2, 0, yPosition)
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    btn.Text = text
+    btn.Font = Enum.Font.Gotham
+    btn.TextSize = BTN_FONT_SIZE
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.BorderSizePixel = 0
+    btn.AutoButtonColor = false
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, BTN_RADIUS)
+    
+    -- Estado del botón
+    local isActive = false
+    
+    -- Indicador visual
+    local indicator = Instance.new("Frame", btn)
+    indicator.Size = UDim2.new(0, 8, 0, 8)
+    indicator.Position = UDim2.new(0, 8, 0.5, -4)
+    indicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Rojo = OFF
+    indicator.BorderSizePixel = 0
+    Instance.new("UICorner", indicator).CornerRadius = UDim.new(0, 4)
+    
+    -- Función para actualizar visual
+    local function updateVisual()
+        if isActive then
+            btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            indicator.BackgroundColor3 = Color3.fromRGB(50, 255, 50) -- Verde = ON
+        else
+            btn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            indicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50) -- Rojo = OFF
+        end
+    end
+    
+    -- Click del botón
+    btn.MouseButton1Click:Connect(function()
+        isActive = not isActive
+        callback(isActive)
+        updateVisual()
+    end)
+    
+    -- Hover effect
+    btn.MouseEnter:Connect(function()
+        if not isActive then
+            btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        end
+    end)
+    
+    btn.MouseLeave:Connect(function()
+        updateVisual()
+    end)
+    
+    updateVisual()
+    return btn, function() isActive = false updateVisual() end
+end
+
+-- Botón Anti FPS Killer
+local antiFpsBtn, resetBtn = createToggleButton(main, "Anti FPS Killer", TITLE_HEIGHT + 10, function(active)
+    if active then
+        startAntiFps()
+        print("Anti FPS Killer: ACTIVADO - Accesorios guardados y eliminados")
+    else
+        stopAntiFps()
+        print("Anti FPS Killer: DESACTIVADO - Accesorios restaurados")
+    end
+end)
+
+-- Reset al cambiar de personaje
+player.CharacterAdded:Connect(function()
+    stopAntiFps()
+    resetBtn()
+    -- Limpiar accesorios guardados del jugador local
+    savedAccessories[player.Name] = nil
+end)
+
+-- Limpiar accesorios guardados cuando un jugador se va
+Players.PlayerRemoving:Connect(function(removedPlayer)
+    savedAccessories[removedPlayer.Name] = nil
+end)
