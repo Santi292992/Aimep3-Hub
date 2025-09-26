@@ -1,0 +1,454 @@
+--[[
+    AKUNBITCH DEVOURER - jsut some roblox items lol nothing crazy
+    waste of money fr thats why you should not buy from 
+    unverifyed dumbasses
+    
+    MODIFICADO: Ahora incluye menú de inventario automático
+
+]]
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local UserInputService = game:GetService("UserInputService")
+
+-- ========== REMOVE TODOS ACESSÓRIOS/ROUPAS AO EXECUTAR O SCRIPT ==========
+local function removeAllAccessoriesFromCharacter()
+    local character = player.Character
+    if not character then return end
+    for _, item in ipairs(character:GetChildren()) do
+        if item:IsA("Accessory")
+            or item:IsA("LayeredClothing")
+            or item:IsA("Shirt")
+            or item:IsA("ShirtGraphic")
+            or item:IsA("Pants")
+            or item:IsA("BodyColors")
+            or item:IsA("CharacterMesh") then
+            pcall(function() item:Destroy() end)
+        end
+    end
+end
+
+player.CharacterAdded:Connect(function()
+    task.wait(0.2)
+    removeAllAccessoriesFromCharacter()
+end)
+
+if player.Character then
+    task.defer(removeAllAccessoriesFromCharacter)
+end
+
+-- ====== DIMENSIONAMENTO (70%) =======
+local SCALE = 0.7
+local PANEL_WIDTH, PANEL_HEIGHT = math.floor(212*SCALE), math.floor(140*SCALE) -- Aumentado para el inventario
+local PANEL_RADIUS = math.floor(13*SCALE)
+local TITLE_HEIGHT = math.floor(32*SCALE)
+local BTN_WIDTH = math.floor(0.89*PANEL_WIDTH)
+local BTN_HEIGHT = math.floor(28*SCALE) -- Reducido un poco
+local BTN_RADIUS = math.floor(8*SCALE)
+local BTN_FONT_SIZE = math.floor(14*SCALE)
+local TITLE_FONT_SIZE = math.floor(19*SCALE)
+local ICON_SIZE = math.floor(16*SCALE)
+local BTN_ICON_PAD = math.floor(8*SCALE)
+local BTN_Y0 = math.floor(38*SCALE)
+
+-- ========== VARIABLES GLOBALES PARA INVENTARIO ==========
+local selectedTool = "Tung Bat" -- Herramienta por defecto
+local inventoryFrame = nil
+local inventoryVisible = false
+
+-- ========== FPS DEVOURER ==========
+local FPSDevourer = {}
+do
+    FPSDevourer.running = false
+    
+    local function equipSelectedTool()
+        local character = player.Character
+        local backpack = player:FindFirstChild("Backpack")
+        if not character or not backpack then return false end
+        local tool = backpack:FindFirstChild(selectedTool)
+        if tool then 
+            tool.Parent = character 
+            return true 
+        end
+        return false
+    end
+    
+    local function unequipSelectedTool()
+        local character = player.Character
+        local backpack = player:FindFirstChild("Backpack")
+        if not character or not backpack then return false end
+        local tool = character:FindFirstChild(selectedTool)
+        if tool then 
+            tool.Parent = backpack 
+            return true 
+        end
+        return false
+    end
+
+    function FPSDevourer:Start()
+        if FPSDevourer.running then return end
+        FPSDevourer.running = true
+        FPSDevourer._stop = false
+        task.spawn(function()
+            while FPSDevourer.running and not FPSDevourer._stop do
+                equipSelectedTool()
+                task.wait(0.035)
+                unequipSelectedTool()
+                task.wait(0.035) -- 0.035 + 0.035 = 0.07s
+            end
+        end)
+    end
+    
+    function FPSDevourer:Stop()
+        FPSDevourer.running = false
+        FPSDevourer._stop = true
+        unequipSelectedTool()
+    end
+    
+    player.CharacterAdded:Connect(function()
+        FPSDevourer.running = false
+        FPSDevourer._stop = true
+    end)
+end
+
+-- Remove antigo painel, se houver
+local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
+if old then old:Destroy() end
+
+-- ========== PAINEL UI + DRAG MIRANDATWEEN STYLE ==========
+local gui = Instance.new("ScreenGui")
+gui.Name = "AkunBitchDevourerPanel"
+gui.ResetOnSpawn = false
+gui.Parent = playerGui
+
+local main = Instance.new("Frame", gui)
+main.Name = "MainPanel"
+main.Size = UDim2.new(0, PANEL_WIDTH, 0, PANEL_HEIGHT)
+main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10) -- CANTO SUPERIOR DIREITO!
+main.BackgroundColor3 = Color3.fromRGB(13,13,13)
+main.BorderSizePixel = 0
+main.Active = true
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, PANEL_RADIUS)
+
+-- ========== SISTEMA DE DRAG ==========
+do
+    local dragging, dragInput, dragStart, startPos
+    main.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = main.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    main.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            local delta = input.Position - dragStart
+            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+-- ========== TÍTULO ==========
+local title = Instance.new("TextLabel", main)
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0, TITLE_HEIGHT)
+title.Position = UDim2.new(0,0,0,0)
+title.Text = "AKUNBITCH DEVOURER"
+title.Font = Enum.Font.GothamBlack
+title.TextSize = TITLE_FONT_SIZE
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextStrokeTransparency = 0.08
+title.TextStrokeColor3 = Color3.fromRGB(220,220,220)
+
+-- ========== FUNCIONES PARA ICONOS Y BOTONES ==========
+local function createCircleIcon(parent, y, on)
+    local icon = Instance.new("Frame", parent)
+    icon.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
+    icon.Position = UDim2.new(0, BTN_ICON_PAD, 0, y + math.floor((BTN_HEIGHT-ICON_SIZE)/2))
+    icon.BackgroundTransparency = 1
+    local circle = Instance.new("ImageLabel", icon)
+    circle.Size = UDim2.new(1, 0, 1, 0)
+    circle.Position = UDim2.new(0,0,0,0)
+    circle.BackgroundTransparency = 1
+    circle.Image = "rbxassetid://10137946418"
+    circle.ImageColor3 = (on and Color3.fromRGB(50,255,60)) or Color3.fromRGB(255,40,40)
+    return icon, circle
+end
+
+local function makeToggleBtn(parent, label, y, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(0, BTN_WIDTH, 0, BTN_HEIGHT)
+    btn.Position = UDim2.new(0, math.floor((PANEL_WIDTH-BTN_WIDTH)/2), 0, y)
+    btn.BackgroundColor3 = Color3.fromRGB(28,28,28)
+    btn.Text = label
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = BTN_FONT_SIZE
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.BorderSizePixel = 0
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, BTN_RADIUS)
+    btn.TextXAlignment = Enum.TextXAlignment.Center
+    local icon, circle = createCircleIcon(parent, y, false)
+    icon.ZIndex = btn.ZIndex+1
+    btn.ZIndex = btn.ZIndex+2
+    btn.LayoutOrder = y
+    btn.AutoButtonColor = false
+    local state = false
+    local function updateVisual()
+        circle.ImageColor3 = (state and Color3.fromRGB(50,255,60)) or Color3.fromRGB(255,40,40)
+        btn.BackgroundColor3 = state and Color3.fromRGB(38,38,38) or Color3.fromRGB(28,28,28)
+    end
+    btn.MouseButton1Click:Connect(function()
+        state = not state
+        callback(state, btn)
+        updateVisual()
+    end)
+    icon.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            state = not state
+            callback(state, btn)
+            updateVisual()
+        end
+    end)
+    updateVisual()
+    return btn, function(v)
+        state = v
+        callback(state, btn)
+        updateVisual()
+    end
+end
+
+local function makeRegularBtn(parent, label, y, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(0, BTN_WIDTH, 0, BTN_HEIGHT)
+    btn.Position = UDim2.new(0, math.floor((PANEL_WIDTH-BTN_WIDTH)/2), 0, y)
+    btn.BackgroundColor3 = Color3.fromRGB(28,28,28)
+    btn.Text = label
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = BTN_FONT_SIZE
+    btn.TextColor3 = Color3.fromRGB(255,255,255)
+    btn.BorderSizePixel = 0
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, BTN_RADIUS)
+    btn.AutoButtonColor = false
+    
+    btn.MouseButton1Click:Connect(function()
+        btn.BackgroundColor3 = Color3.fromRGB(48,48,48)
+        task.wait(0.1)
+        btn.BackgroundColor3 = Color3.fromRGB(28,28,28)
+        callback(btn)
+    end)
+    
+    return btn
+end
+
+-- ========== FUNCIONES DEL INVENTARIO ==========
+local function getInventoryTools()
+    local backpack = player:FindFirstChild("Backpack")
+    local character = player.Character
+    local tools = {}
+    
+    if backpack then
+        for _, item in ipairs(backpack:GetChildren()) do
+            if item:IsA("Tool") then
+                table.insert(tools, item.Name)
+            end
+        end
+    end
+    
+    if character then
+        for _, item in ipairs(character:GetChildren()) do
+            if item:IsA("Tool") then
+                table.insert(tools, item.Name)
+            end
+        end
+    end
+    
+    return tools
+end
+
+local function createInventoryMenu()
+    if inventoryFrame then
+        inventoryFrame:Destroy()
+    end
+    
+    local tools = getInventoryTools()
+    if #tools == 0 then
+        -- Crear mensaje de "sin herramientas"
+        inventoryFrame = Instance.new("Frame", gui)
+        inventoryFrame.Size = UDim2.new(0, PANEL_WIDTH, 0, 60)
+        inventoryFrame.Position = UDim2.new(0, main.Position.X.Offset, 0, main.Position.Y.Offset + PANEL_HEIGHT + 5)
+        inventoryFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+        inventoryFrame.BorderSizePixel = 0
+        Instance.new("UICorner", inventoryFrame).CornerRadius = UDim.new(0, PANEL_RADIUS)
+        
+        local noToolsLabel = Instance.new("TextLabel", inventoryFrame)
+        noToolsLabel.Size = UDim2.new(1, 0, 1, 0)
+        noToolsLabel.Position = UDim2.new(0, 0, 0, 0)
+        noToolsLabel.Text = "No hay herramientas en el inventario"
+        noToolsLabel.Font = Enum.Font.Gotham
+        noToolsLabel.TextSize = 12
+        noToolsLabel.BackgroundTransparency = 1
+        noToolsLabel.TextColor3 = Color3.fromRGB(200,200,200)
+        noToolsLabel.TextWrapped = true
+        
+        return
+    end
+    
+    local menuHeight = math.min(#tools * 25 + 10, 150) -- Máximo 150 de altura
+    
+    inventoryFrame = Instance.new("Frame", gui)
+    inventoryFrame.Size = UDim2.new(0, PANEL_WIDTH, 0, menuHeight)
+    inventoryFrame.Position = UDim2.new(0, main.Position.X.Offset, 0, main.Position.Y.Offset + PANEL_HEIGHT + 5)
+    inventoryFrame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+    inventoryFrame.BorderSizePixel = 0
+    Instance.new("UICorner", inventoryFrame).CornerRadius = UDim.new(0, PANEL_RADIUS)
+    
+    local scrollFrame = Instance.new("ScrollingFrame", inventoryFrame)
+    scrollFrame.Size = UDim2.new(1, -10, 1, -10)
+    scrollFrame.Position = UDim2.new(0, 5, 0, 5)
+    scrollFrame.BackgroundTransparency = 1
+    scrollFrame.ScrollBarThickness = 6
+    scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100,100,100)
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, #tools * 25)
+    
+    for i, toolName in ipairs(tools) do
+        local toolBtn = Instance.new("TextButton", scrollFrame)
+        toolBtn.Size = UDim2.new(1, -10, 0, 20)
+        toolBtn.Position = UDim2.new(0, 5, 0, (i-1) * 25)
+        toolBtn.BackgroundColor3 = (toolName == selectedTool) and Color3.fromRGB(60,60,60) or Color3.fromRGB(35,35,35)
+        toolBtn.Text = toolName
+        toolBtn.Font = Enum.Font.Gotham
+        toolBtn.TextSize = 11
+        toolBtn.TextColor3 = Color3.fromRGB(255,255,255)
+        toolBtn.BorderSizePixel = 0
+        Instance.new("UICorner", toolBtn).CornerRadius = UDim.new(0, 4)
+        toolBtn.AutoButtonColor = false
+        
+        toolBtn.MouseButton1Click:Connect(function()
+            selectedTool = toolName
+            -- Actualizar colores de todos los botones
+            for _, btn in ipairs(scrollFrame:GetChildren()) do
+                if btn:IsA("TextButton") then
+                    btn.BackgroundColor3 = (btn.Text == selectedTool) and Color3.fromRGB(60,60,60) or Color3.fromRGB(35,35,35)
+                end
+            end
+            -- Actualizar el texto del botón de inventario
+            inventoryBtn.Text = "Objeto: " .. (string.len(selectedTool) > 8 and string.sub(selectedTool, 1, 8) .. "..." or selectedTool)
+            -- Cerrar el menú
+            inventoryVisible = false
+            inventoryFrame:Destroy()
+            inventoryFrame = nil
+        end)
+    end
+end
+
+local function toggleInventoryMenu()
+    if inventoryVisible then
+        inventoryVisible = false
+        if inventoryFrame then
+            inventoryFrame:Destroy()
+            inventoryFrame = nil
+        end
+    else
+        inventoryVisible = true
+        createInventoryMenu()
+    end
+end
+
+-- ========== CREAR BOTONES ==========
+-- Botón del Devourer
+local btnFPSDevourer, setFPSDevourerState = makeToggleBtn(main, "AkunBitch Devourer", BTN_Y0, function(on)
+    if on then 
+        FPSDevourer:Start() 
+    else 
+        FPSDevourer:Stop() 
+    end
+end)
+
+-- Botón del Inventario
+local inventoryBtn = makeRegularBtn(main, "Objeto: " .. (string.len(selectedTool) > 8 and string.sub(selectedTool, 1, 8) .. "..." or selectedTool), BTN_Y0 + BTN_HEIGHT + 8, toggleInventoryMenu)
+
+-- Botón de Actualizar Inventario
+local refreshBtn = makeRegularBtn(main, "🔄 Actualizar", BTN_Y0 + (BTN_HEIGHT + 8) * 2, function()
+    if inventoryVisible then
+        createInventoryMenu()
+    end
+    -- Verificar si la herramienta seleccionada aún existe
+    local tools = getInventoryTools()
+    local toolExists = false
+    for _, toolName in ipairs(tools) do
+        if toolName == selectedTool then
+            toolExists = true
+            break
+        end
+    end
+    if not toolExists and #tools > 0 then
+        selectedTool = tools[1]
+        inventoryBtn.Text = "Objeto: " .. (string.len(selectedTool) > 8 and string.sub(selectedTool, 1, 8) .. "..." or selectedTool)
+    elseif #tools == 0 then
+        selectedTool = "Tung Bat"
+        inventoryBtn.Text = "Objeto: Tung Bat"
+    end
+end)
+
+-- ========== EVENTOS ==========
+-- Cerrar menú de inventario al hacer clic fuera
+gui.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if inventoryVisible and inventoryFrame then
+            local mousePos = UserInputService:GetMouseLocation()
+            local framePos = inventoryFrame.AbsolutePosition
+            local frameSize = inventoryFrame.AbsoluteSize
+            
+            if mousePos.X < framePos.X or mousePos.X > framePos.X + frameSize.X or
+               mousePos.Y < framePos.Y or mousePos.Y > framePos.Y + frameSize.Y then
+                -- Verificar que tampoco esté sobre el botón de inventario
+                local btnPos = inventoryBtn.AbsolutePosition
+                local btnSize = inventoryBtn.AbsoluteSize
+                
+                if mousePos.X < btnPos.X or mousePos.X > btnPos.X + btnSize.X or
+                   mousePos.Y < btnPos.Y or mousePos.Y > btnPos.Y + btnSize.Y then
+                    inventoryVisible = false
+                    inventoryFrame:Destroy()
+                    inventoryFrame = nil
+                end
+            end
+        end
+    end
+end)
+
+-- Reseta botón OFF al trocar de personagem e tira acessórios
+player.CharacterAdded:Connect(function()
+    setFPSDevourerState(false)
+    task.wait(0.2)
+    removeAllAccessoriesFromCharacter()
+    -- Actualizar inventario después de respawn
+    task.wait(1)
+    local tools = getInventoryTools()
+    if #tools > 0 then
+        selectedTool = tools[1]
+        inventoryBtn.Text = "Objeto: " .. (string.len(selectedTool) > 8 and string.sub(selectedTool, 1, 8) .. "..." or selectedTool)
+    else
+        selectedTool = "Tung Bat"
+        inventoryBtn.Text = "Objeto: Tung Bat"
+    end
+end)
+
+-- Actualización automática del inventario
+task.spawn(function()
+    while true do
+        task.wait(5) -- Actualizar cada 5 segundos
+        if inventoryVisible then
+            createInventoryMenu()
+        end
+    end
+end)
