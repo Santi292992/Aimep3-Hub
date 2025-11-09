@@ -1,0 +1,496 @@
+-- Menú Movible Minimizable para Roblox con ESP y FPS Killer
+-- Coloca este script en StarterGui > ScreenGui > LocalScript
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+-- Guardar valores originales
+local originalSpeed = humanoid.WalkSpeed
+local originalJump = humanoid.JumpPower
+
+-- Crear ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MenuGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player.PlayerGui
+
+-- Frame principal del menú (AUMENTADO EL TAMAÑO)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 300, 0, 350)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -175)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Visible = true
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = mainFrame
+
+-- Título
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+title.Text = "MENÚ"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = title
+
+-- Botón minimizar
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Name = "MinimizeButton"
+minimizeButton.Size = UDim2.new(0, 30, 0, 30)
+minimizeButton.Position = UDim2.new(1, -70, 0, 5)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+minimizeButton.Text = "-"
+minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeButton.TextSize = 24
+minimizeButton.Font = Enum.Font.GothamBold
+minimizeButton.Parent = mainFrame
+
+local minimizeCorner = Instance.new("UICorner")
+minimizeCorner.CornerRadius = UDim.new(0, 8)
+minimizeCorner.Parent = minimizeButton
+
+-- Botón cerrar
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 18
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+-- ICONO MINIMIZADO (oculto al inicio)
+local iconFrame = Instance.new("ImageButton")
+iconFrame.Name = "IconFrame"
+iconFrame.Size = UDim2.new(0, 60, 0, 60)
+iconFrame.Position = UDim2.new(0, 10, 0, 10)
+iconFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+iconFrame.BorderSizePixel = 0
+iconFrame.Visible = false
+iconFrame.Active = true
+iconFrame.Draggable = true
+iconFrame.Parent = screenGui
+
+local iconCorner = Instance.new("UICorner")
+iconCorner.CornerRadius = UDim.new(0, 12)
+iconCorner.Parent = iconFrame
+
+local iconLabel = Instance.new("TextLabel")
+iconLabel.Size = UDim2.new(1, 0, 1, 0)
+iconLabel.BackgroundTransparency = 1
+iconLabel.Text = "M"
+iconLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+iconLabel.TextSize = 32
+iconLabel.Font = Enum.Font.GothamBold
+iconLabel.Parent = iconFrame
+
+-- Botón Speed/Jump (abre submenú)
+local speedButton = Instance.new("TextButton")
+speedButton.Name = "SpeedButton"
+speedButton.Size = UDim2.new(0, 260, 0, 40)
+speedButton.Position = UDim2.new(0, 20, 0, 60)
+speedButton.BackgroundColor3 = Color3.fromRGB(50, 150, 250)
+speedButton.Text = "Speed & Jump"
+speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedButton.TextSize = 16
+speedButton.Font = Enum.Font.GothamBold
+speedButton.Parent = mainFrame
+
+local speedCorner = Instance.new("UICorner")
+speedCorner.CornerRadius = UDim.new(0, 8)
+speedCorner.Parent = speedButton
+
+-- Botón TP Tool
+local tpButton = Instance.new("TextButton")
+tpButton.Name = "TpButton"
+tpButton.Size = UDim2.new(0, 260, 0, 40)
+tpButton.Position = UDim2.new(0, 20, 0, 110)
+tpButton.BackgroundColor3 = Color3.fromRGB(100, 250, 150)
+tpButton.Text = "TP Tool"
+tpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+tpButton.TextSize = 16
+tpButton.Font = Enum.Font.GothamBold
+tpButton.Parent = mainFrame
+
+local tpCorner = Instance.new("UICorner")
+tpCorner.CornerRadius = UDim.new(0, 8)
+tpCorner.Parent = tpButton
+
+-- Botón ESP
+local espButton = Instance.new("TextButton")
+espButton.Name = "EspButton"
+espButton.Size = UDim2.new(0, 260, 0, 40)
+espButton.Position = UDim2.new(0, 20, 0, 160)
+espButton.BackgroundColor3 = Color3.fromRGB(250, 200, 50)
+espButton.Text = "Activar ESP"
+espButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+espButton.TextSize = 16
+espButton.Font = Enum.Font.GothamBold
+espButton.Parent = mainFrame
+
+local espCorner = Instance.new("UICorner")
+espCorner.CornerRadius = UDim.new(0, 8)
+espCorner.Parent = espButton
+
+-- Botón Server Hop
+local serverButton = Instance.new("TextButton")
+serverButton.Name = "ServerButton"
+serverButton.Size = UDim2.new(0, 260, 0, 40)
+serverButton.Position = UDim2.new(0, 20, 0, 210)
+serverButton.BackgroundColor3 = Color3.fromRGB(200, 100, 200)
+serverButton.Text = "Cambiar Servidor"
+serverButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+serverButton.TextSize = 16
+serverButton.Font = Enum.Font.GothamBold
+serverButton.Parent = mainFrame
+
+local serverCorner = Instance.new("UICorner")
+serverCorner.CornerRadius = UDim.new(0, 8)
+serverCorner.Parent = serverButton
+
+-- NUEVO: Botón FPS Killer
+local fpsButton = Instance.new("TextButton")
+fpsButton.Name = "FpsButton"
+fpsButton.Size = UDim2.new(0, 260, 0, 40)
+fpsButton.Position = UDim2.new(0, 20, 0, 260)
+fpsButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+fpsButton.Text = "FPS Killer"
+fpsButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+fpsButton.TextSize = 16
+fpsButton.Font = Enum.Font.GothamBold
+fpsButton.Parent = mainFrame
+
+local fpsCorner = Instance.new("UICorner")
+fpsCorner.CornerRadius = UDim.new(0, 8)
+fpsCorner.Parent = fpsButton
+
+-- SUBMENÚ DE SPEED Y JUMP
+local speedSubMenu = Instance.new("Frame")
+speedSubMenu.Name = "SpeedSubMenu"
+speedSubMenu.Size = UDim2.new(0, 220, 0, 150)
+speedSubMenu.Position = UDim2.new(0.5, -110, 0.3, 0)
+speedSubMenu.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+speedSubMenu.BorderSizePixel = 0
+speedSubMenu.Active = true
+speedSubMenu.Draggable = true
+speedSubMenu.Visible = false
+speedSubMenu.Parent = screenGui
+
+local subMenuCorner = Instance.new("UICorner")
+subMenuCorner.CornerRadius = UDim.new(0, 10)
+subMenuCorner.Parent = speedSubMenu
+
+-- Título del submenú
+local subTitle = Instance.new("TextLabel")
+subTitle.Size = UDim2.new(1, 0, 0, 35)
+subTitle.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+subTitle.Text = "SPEED & JUMP"
+subTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+subTitle.TextSize = 16
+subTitle.Font = Enum.Font.GothamBold
+subTitle.Parent = speedSubMenu
+
+local subTitleCorner = Instance.new("UICorner")
+subTitleCorner.CornerRadius = UDim.new(0, 10)
+subTitleCorner.Parent = subTitle
+
+-- Botón Speed 50
+local speed50Button = Instance.new("TextButton")
+speed50Button.Name = "Speed50Button"
+speed50Button.Size = UDim2.new(0, 180, 0, 35)
+speed50Button.Position = UDim2.new(0, 20, 0, 45)
+speed50Button.BackgroundColor3 = Color3.fromRGB(50, 150, 250)
+speed50Button.Text = "Speed 50"
+speed50Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+speed50Button.TextSize = 16
+speed50Button.Font = Enum.Font.GothamBold
+speed50Button.Parent = speedSubMenu
+
+local speed50Corner = Instance.new("UICorner")
+speed50Corner.CornerRadius = UDim.new(0, 8)
+speed50Corner.Parent = speed50Button
+
+-- Botón Jump 50
+local jump50Button = Instance.new("TextButton")
+jump50Button.Name = "Jump50Button"
+jump50Button.Size = UDim2.new(0, 180, 0, 35)
+jump50Button.Position = UDim2.new(0, 20, 0, 90)
+jump50Button.BackgroundColor3 = Color3.fromRGB(100, 250, 150)
+jump50Button.Text = "Jump 50"
+jump50Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+jump50Button.TextSize = 16
+jump50Button.Font = Enum.Font.GothamBold
+jump50Button.Parent = speedSubMenu
+
+local jump50Corner = Instance.new("UICorner")
+jump50Corner.CornerRadius = UDim.new(0, 8)
+jump50Corner.Parent = jump50Button
+
+-- Botón cerrar submenú
+local closeSubButton = Instance.new("TextButton")
+closeSubButton.Name = "CloseSubButton"
+closeSubButton.Size = UDim2.new(0, 30, 0, 30)
+closeSubButton.Position = UDim2.new(1, -35, 0, 5)
+closeSubButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeSubButton.Text = "X"
+closeSubButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeSubButton.TextSize = 18
+closeSubButton.Font = Enum.Font.GothamBold
+closeSubButton.Parent = speedSubMenu
+
+local closeSubCorner = Instance.new("UICorner")
+closeSubCorner.CornerRadius = UDim.new(0, 8)
+closeSubCorner.Parent = closeSubButton
+
+-- Variables
+local tpTool = nil
+local speedActive = false
+local jumpActive = false
+local espActive = false
+local espConnection = nil
+local fpsKillerActive = false
+
+-- FUNCIÓN ESP PARA OG Y MEME
+local function aplicarESP(textLabel)
+    if textLabel.Text ~= "OG" and textLabel.Text ~= "Meme" then
+        return
+    end
+    
+    local billboardGui = textLabel:FindFirstAncestorOfClass("BillboardGui")
+    
+    if billboardGui then
+        billboardGui.Size = UDim2.new(15, 0, 4, 0)
+        billboardGui.StudsOffset = Vector3.new(0, 4, 0)
+        billboardGui.AlwaysOnTop = true
+        billboardGui.MaxDistance = 3000
+    end
+    
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.Position = UDim2.new(0, 0, 0, 0)
+    textLabel.TextScaled = true
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextStrokeTransparency = 0
+    textLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.BackgroundTransparency = 0.2
+    textLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    textLabel.ZIndex = 10
+    textLabel.TextTransparency = 0
+    textLabel.Visible = true
+    
+    local uiStroke = textLabel:FindFirstChildOfClass("UIStroke")
+    if not uiStroke then
+        uiStroke = Instance.new("UIStroke")
+        uiStroke.Parent = textLabel
+    end
+    uiStroke.Color = Color3.fromRGB(0, 0, 0)
+    uiStroke.Thickness = 5
+    uiStroke.Transparency = 0
+end
+
+local function buscarYAplicarESP()
+    for _, descendant in pairs(game:GetDescendants()) do
+        if descendant:IsA("TextLabel") and descendant.Name == "Rarity" then
+            aplicarESP(descendant)
+        end
+    end
+end
+
+-- Función Speed 50
+speed50Button.MouseButton1Click:Connect(function()
+    if not speedActive then
+        humanoid.WalkSpeed = 50
+        speed50Button.BackgroundColor3 = Color3.fromRGB(250, 150, 50)
+        speed50Button.Text = "Speed: ON"
+        speedActive = true
+    else
+        humanoid.WalkSpeed = originalSpeed
+        speed50Button.BackgroundColor3 = Color3.fromRGB(50, 150, 250)
+        speed50Button.Text = "Speed 50"
+        speedActive = false
+    end
+end)
+
+-- Función Jump 50
+jump50Button.MouseButton1Click:Connect(function()
+    if not jumpActive then
+        if humanoid.UseJumpPower then
+            humanoid.JumpPower = 50
+        else
+            humanoid.JumpHeight = 50
+        end
+        jump50Button.BackgroundColor3 = Color3.fromRGB(250, 250, 50)
+        jump50Button.Text = "Jump: ON"
+        jumpActive = true
+    else
+        if humanoid.UseJumpPower then
+            humanoid.JumpPower = originalJump
+        else
+            humanoid.JumpHeight = originalJump
+        end
+        jump50Button.BackgroundColor3 = Color3.fromRGB(100, 250, 150)
+        jump50Button.Text = "Jump 50"
+        jumpActive = false
+    end
+end)
+
+-- Función ESP (solo activar, sin desactivar)
+espButton.MouseButton1Click:Connect(function()
+    if not espActive then
+        buscarYAplicarESP()
+        espActive = true
+        espButton.BackgroundColor3 = Color3.fromRGB(50, 250, 50)
+        espButton.Text = "ESP Activado ✓"
+        
+        -- Conectar para nuevos TextLabels
+        espConnection = game.DescendantAdded:Connect(function(descendant)
+            if descendant:IsA("TextLabel") and descendant.Name == "Rarity" then
+                wait(0.1)
+                aplicarESP(descendant)
+            end
+        end)
+    end
+end)
+
+-- NUEVA FUNCIÓN: FPS Killer
+fpsButton.MouseButton1Click:Connect(function()
+    if not fpsKillerActive then
+        fpsButton.Text = "Cargando..."
+        fpsButton.BackgroundColor3 = Color3.fromRGB(255, 150, 100)
+        
+        local success, error = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Santi292992/Aimep3-Hub/refs/heads/Santi292992-patch-2/Fps%20killer%20para%20todos%20los%20juegos"))()
+        end)
+        
+        if success then
+            fpsButton.Text = "FPS Killer ✓"
+            fpsButton.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+            fpsKillerActive = true
+        else
+            fpsButton.Text = "Error"
+            fpsButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+            wait(2)
+            fpsButton.Text = "FPS Killer"
+            fpsButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+        end
+    end
+end)
+
+-- Abrir/cerrar submenú
+speedButton.MouseButton1Click:Connect(function()
+    speedSubMenu.Visible = not speedSubMenu.Visible
+end)
+
+-- Cerrar submenú
+closeSubButton.MouseButton1Click:Connect(function()
+    speedSubMenu.Visible = false
+end)
+
+-- Función TP Tool
+local function createTPTool()
+    if tpTool then
+        tpTool:Destroy()
+        tpTool = nil
+        tpButton.BackgroundColor3 = Color3.fromRGB(100, 250, 150)
+        tpButton.Text = "TP Tool"
+        return
+    end
+    
+    tpTool = Instance.new("Tool")
+    tpTool.Name = "TP Tool"
+    tpTool.RequiresHandle = false
+    tpTool.CanBeDropped = false
+    
+    tpTool.Activated:Connect(function()
+        if mouse.Target then
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
+            end
+        end
+    end)
+    
+    tpTool.Parent = player.Backpack
+    tpButton.BackgroundColor3 = Color3.fromRGB(150, 250, 100)
+    tpButton.Text = "TP: ON"
+end
+
+tpButton.MouseButton1Click:Connect(createTPTool)
+
+-- Función Server Hop
+serverButton.MouseButton1Click:Connect(function()
+    local TeleportService = game:GetService("TeleportService")
+    local HttpService = game:GetService("HttpService")
+    local placeId = game.PlaceId
+    
+    serverButton.Text = "Buscando..."
+    
+    local success, servers = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"))
+    end)
+    
+    if success and servers and servers.data then
+        for _, server in pairs(servers.data) do
+            if server.id ~= game.JobId and server.playing < server.maxPlayers then
+                TeleportService:TeleportToPlaceInstance(placeId, server.id, player)
+                return
+            end
+        end
+        serverButton.Text = "No hay servidores"
+        wait(2)
+        serverButton.Text = "Cambiar Servidor"
+    else
+        serverButton.Text = "Error"
+        wait(2)
+        serverButton.Text = "Cambiar Servidor"
+    end
+end)
+
+-- FUNCIÓN MINIMIZAR/MAXIMIZAR
+minimizeButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    iconFrame.Visible = true
+end)
+
+iconFrame.MouseButton1Click:Connect(function()
+    iconFrame.Visible = false
+    mainFrame.Visible = true
+end)
+
+-- Función Cerrar menú principal
+closeButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    iconFrame.Visible = false
+end)
+
+-- Recargar personaje
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = character:WaitForChild("Humanoid")
+    originalSpeed = humanoid.WalkSpeed
+    originalJump = humanoid.UseJumpPower and humanoid.JumpPower or humanoid.JumpHeight
+    tpTool = nil
+    speedActive = false
+    jumpActive = false
+end)
