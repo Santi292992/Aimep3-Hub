@@ -1,0 +1,210 @@
+-- Menú Movible para Roblox
+-- Coloca este script en StarterGui > ScreenGui > LocalScript
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+-- Guardar velocidad original
+local originalSpeed = humanoid.WalkSpeed
+
+-- Crear ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MenuGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player.PlayerGui
+
+-- Frame principal del menú
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 300, 0, 250)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -125)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true -- Esto hace que el menú sea movible
+mainFrame.Parent = screenGui
+
+-- Esquinas redondeadas
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = mainFrame
+
+-- Título
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.Size = UDim2.new(1, 0, 0, 40)
+title.Position = UDim2.new(0, 0, 0, 0)
+title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+title.Text = "MENÚ"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 20
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = title
+
+-- Botón Speed 50
+local speedButton = Instance.new("TextButton")
+speedButton.Name = "SpeedButton"
+speedButton.Size = UDim2.new(0, 260, 0, 40)
+speedButton.Position = UDim2.new(0, 20, 0, 60)
+speedButton.BackgroundColor3 = Color3.fromRGB(50, 150, 250)
+speedButton.Text = "Speed 50"
+speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedButton.TextSize = 16
+speedButton.Font = Enum.Font.GothamBold
+speedButton.Parent = mainFrame
+
+local speedCorner = Instance.new("UICorner")
+speedCorner.CornerRadius = UDim.new(0, 8)
+speedCorner.Parent = speedButton
+
+-- Botón TP Tool
+local tpButton = Instance.new("TextButton")
+tpButton.Name = "TpButton"
+tpButton.Size = UDim2.new(0, 260, 0, 40)
+tpButton.Position = UDim2.new(0, 20, 0, 110)
+tpButton.BackgroundColor3 = Color3.fromRGB(100, 250, 150)
+tpButton.Text = "TP Tool"
+tpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+tpButton.TextSize = 16
+tpButton.Font = Enum.Font.GothamBold
+tpButton.Parent = mainFrame
+
+local tpCorner = Instance.new("UICorner")
+tpCorner.CornerRadius = UDim.new(0, 8)
+tpCorner.Parent = tpButton
+
+-- Botón Server Hop
+local serverButton = Instance.new("TextButton")
+serverButton.Name = "ServerButton"
+serverButton.Size = UDim2.new(0, 260, 0, 40)
+serverButton.Position = UDim2.new(0, 20, 0, 160)
+serverButton.BackgroundColor3 = Color3.fromRGB(200, 100, 200)
+serverButton.Text = "Cambiar Servidor"
+serverButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+serverButton.TextSize = 16
+serverButton.Font = Enum.Font.GothamBold
+serverButton.Parent = mainFrame
+
+local serverCorner = Instance.new("UICorner")
+serverCorner.CornerRadius = UDim.new(0, 8)
+serverCorner.Parent = serverButton
+
+-- Botón cerrar
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 18
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = mainFrame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = closeButton
+
+-- Variables
+local speedActive = false
+local tpTool = nil
+
+-- Función Speed
+speedButton.MouseButton1Click:Connect(function()
+    if not speedActive then
+        originalSpeed = humanoid.WalkSpeed -- Guardar velocidad actual
+        humanoid.WalkSpeed = 50
+        speedButton.BackgroundColor3 = Color3.fromRGB(250, 150, 50)
+        speedButton.Text = "Speed: ON"
+        speedActive = true
+    else
+        humanoid.WalkSpeed = originalSpeed -- Restaurar velocidad original
+        speedButton.BackgroundColor3 = Color3.fromRGB(50, 150, 250)
+        speedButton.Text = "Speed 50"
+        speedActive = false
+    end
+end)
+
+-- Función TP Tool
+local function createTPTool()
+    if tpTool then
+        tpTool:Destroy()
+        tpTool = nil
+        tpButton.BackgroundColor3 = Color3.fromRGB(100, 250, 150)
+        tpButton.Text = "TP Tool"
+        return
+    end
+    
+    -- Crear herramienta
+    tpTool = Instance.new("Tool")
+    tpTool.Name = "TP Tool"
+    tpTool.RequiresHandle = false
+    tpTool.CanBeDropped = false
+    
+    -- Para PC (Click del mouse)
+    tpTool.Activated:Connect(function()
+        if mouse.Target then
+            local root = character:FindFirstChild("HumanoidRootPart")
+            if root then
+                root.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
+            end
+        end
+    end)
+    
+    tpTool.Parent = player.Backpack
+    tpButton.BackgroundColor3 = Color3.fromRGB(150, 250, 100)
+    tpButton.Text = "TP: ON"
+end
+
+tpButton.MouseButton1Click:Connect(createTPTool)
+
+-- Función Server Hop
+serverButton.MouseButton1Click:Connect(function()
+    local TeleportService = game:GetService("TeleportService")
+    local HttpService = game:GetService("HttpService")
+    local placeId = game.PlaceId
+    
+    serverButton.Text = "Buscando..."
+    
+    local success, servers = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=100"))
+    end)
+    
+    if success and servers and servers.data then
+        for _, server in pairs(servers.data) do
+            if server.id ~= game.JobId and server.playing < server.maxPlayers then
+                TeleportService:TeleportToPlaceInstance(placeId, server.id, player)
+                return
+            end
+        end
+        serverButton.Text = "No hay servidores"
+        wait(2)
+        serverButton.Text = "Cambiar Servidor"
+    else
+        serverButton.Text = "Error"
+        wait(2)
+        serverButton.Text = "Cambiar Servidor"
+    end
+end)
+
+-- Función Cerrar
+closeButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+end)
+
+-- Recargar personaje
+player.CharacterAdded:Connect(function(newCharacter)
+    character = newCharacter
+    humanoid = character:WaitForChild("Humanoid")
+    originalSpeed = humanoid.WalkSpeed
+    
+    -- Resetear estados
+    speedActive = false
+    tpTool = nil
+end)
