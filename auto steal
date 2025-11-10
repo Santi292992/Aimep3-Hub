@@ -1,0 +1,367 @@
+local player = game:GetService("Players").LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
+
+-- Variables globales
+local savedPosition = nil
+local returning = false
+local originalSpeed = 16
+local walkSpeed = 1000
+local movementConnection = nil
+local noclipConnection = nil
+local heightLockConnection = nil
+local teleportHeight = 25
+local flyingHeight = nil
+
+-- Variables del personaje (se actualizarán)
+local character = nil
+local humanoid = nil
+local rootPart = nil
+
+-- Crear GUI (solo una vez)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SpawnMenu"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = PlayerGui
+
+-- Frame principal
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 180, 0, 200)
+mainFrame.Position = UDim2.new(1, -190, 0, 10)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+mainFrame.BackgroundTransparency = 0.1
+mainFrame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 15)
+corner.Parent = mainFrame
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(100, 100, 255)
+stroke.Thickness = 2
+stroke.Transparency = 0.5
+stroke.Parent = mainFrame
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
+title.Text = "📍 Menú de Spawn"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextSize = 16
+title.Font = Enum.Font.GothamBold
+title.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 15)
+titleCorner.Parent = title
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(0.9, 0, 0, 25)
+statusLabel.Position = UDim2.new(0.05, 0, 0, 45)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "❌ Sin posición guardada"
+statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+statusLabel.TextSize = 11
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.Parent = mainFrame
+
+local saveBtn = Instance.new("TextButton")
+saveBtn.Size = UDim2.new(0.9, 0, 0, 45)
+saveBtn.Position = UDim2.new(0.05, 0, 0, 75)
+saveBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+saveBtn.Text = "💾 Guardar Posición"
+saveBtn.TextColor3 = Color3.new(1, 1, 1)
+saveBtn.TextSize = 14
+saveBtn.Font = Enum.Font.GothamBold
+saveBtn.Parent = mainFrame
+
+local saveBtnCorner = Instance.new("UICorner")
+saveBtnCorner.CornerRadius = UDim.new(0, 10)
+saveBtnCorner.Parent = saveBtn
+
+local returnBtn = Instance.new("TextButton")
+returnBtn.Size = UDim2.new(0.9, 0, 0, 45)
+returnBtn.Position = UDim2.new(0.05, 0, 0, 130)
+returnBtn.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+returnBtn.Text = "🚫 Volver (Guarda primero)"
+returnBtn.TextColor3 = Color3.new(0.7, 0.7, 0.7)
+returnBtn.TextSize = 13
+returnBtn.Font = Enum.Font.GothamBold
+returnBtn.Parent = mainFrame
+
+local returnBtnCorner = Instance.new("UICorner")
+returnBtnCorner.CornerRadius = UDim.new(0, 10)
+returnBtnCorner.Parent = returnBtn
+
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Size = UDim2.new(0.9, 0, 0, 15)
+speedLabel.Position = UDim2.new(0.05, 0, 1, -20)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Text = "⚡ Speed: " .. walkSpeed .. " + FLY"
+speedLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+speedLabel.TextSize = 10
+speedLabel.Font = Enum.Font.GothamBold
+speedLabel.Parent = mainFrame
+
+-- Función para limpiar conexiones
+local function cleanupConnections()
+    if movementConnection then
+        movementConnection:Disconnect()
+        movementConnection = nil
+    end
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
+    if heightLockConnection then
+        heightLockConnection:Disconnect()
+        heightLockConnection = nil
+    end
+    returning = false
+    flyingHeight = nil
+end
+
+-- Función para activar NOCLIP
+local function enableNoclip()
+    if noclipConnection then return end
+    
+    noclipConnection = RunService.Stepped:Connect(function()
+        if returning and character then
+            for _, part in pairs(character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end)
+    print("👻 NOCLIP activado")
+end
+
+-- Función para mantener la altura fija mientras vuela
+local function lockHeight()
+    if heightLockConnection then return end
+    
+    heightLockConnection = RunService.Heartbeat:Connect(function()
+        if returning and rootPart and flyingHeight then
+            -- Mantener la altura Y constante
+            local currentPos = rootPart.Position
+            local targetPos = Vector3.new(currentPos.X, flyingHeight, currentPos.Z)
+            
+            -- Solo ajustar si hay diferencia significativa
+            if math.abs(currentPos.Y - flyingHeight) > 0.5 then
+                rootPart.CFrame = CFrame.new(targetPos)
+            end
+            
+            -- Cancelar velocidad vertical
+            local vel = rootPart.Velocity
+            rootPart.Velocity = Vector3.new(vel.X, 0, vel.Z)
+        end
+    end)
+    print("✈️ Altura bloqueada en Y = " .. flyingHeight)
+end
+
+-- Función para desactivar NOCLIP
+local function disableNoclip()
+    if noclipConnection then
+        noclipConnection:Disconnect()
+        noclipConnection = nil
+    end
+    
+    if character then
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                if part.Name == "HumanoidRootPart" or part.Name == "Head" or part.Name == "Torso" or part.Name == "UpperTorso" then
+                    part.CanCollide = false
+                else
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+    print("🧱 NOCLIP desactivado")
+end
+
+-- Función para detener al personaje
+local function stopCharacter()
+    if not humanoid or not rootPart then return end
+    
+    if movementConnection then
+        movementConnection:Disconnect()
+        movementConnection = nil
+    end
+    
+    if heightLockConnection then
+        heightLockConnection:Disconnect()
+        heightLockConnection = nil
+    end
+    
+    disableNoclip()
+    flyingHeight = nil
+    
+    humanoid:MoveTo(rootPart.Position)
+    rootPart.Velocity = Vector3.new(0, 0, 0)
+    rootPart.RotVelocity = Vector3.new(0, 0, 0)
+    
+    rootPart.Anchored = true
+    wait(0.05)
+    rootPart.Anchored = false
+end
+
+-- Función para actualizar referencias del personaje
+local function updateCharacter()
+    cleanupConnections()
+    
+    character = player.Character
+    if character then
+        humanoid = character:WaitForChild("Humanoid")
+        rootPart = character:WaitForChild("HumanoidRootPart")
+        originalSpeed = humanoid.WalkSpeed
+        print("🔄 Personaje actualizado. Velocidad original:", originalSpeed)
+    end
+end
+
+-- Inicializar personaje
+updateCharacter()
+
+-- Reconectar cuando el personaje reaparezca
+player.CharacterAdded:Connect(function(newCharacter)
+    print("💀 Personaje murió, reconectando...")
+    wait(0.5)
+    updateCharacter()
+end)
+
+-- Botón GUARDAR
+saveBtn.MouseButton1Click:Connect(function()
+    if not rootPart then return end
+    
+    savedPosition = rootPart.CFrame
+    originalSpeed = humanoid.WalkSpeed
+    
+    saveBtn.BackgroundColor3 = Color3.fromRGB(39, 174, 96)
+    saveBtn.Text = "✅ ¡Guardado!"
+    statusLabel.Text = "✅ Posición guardada"
+    statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    
+    returnBtn.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
+    returnBtn.Text = "🚀 Volver VOLANDO"
+    returnBtn.TextColor3 = Color3.new(1, 1, 1)
+    
+    wait(1.5)
+    saveBtn.Text = "💾 Guardar Posición"
+    saveBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+    
+    print("✅ Posición guardada:", savedPosition.Position)
+end)
+
+-- Botón VOLVER
+returnBtn.MouseButton1Click:Connect(function()
+    if not rootPart or not humanoid then 
+        returnBtn.Text = "❌ Esperando personaje..."
+        wait(1)
+        returnBtn.Text = "🚀 Volver VOLANDO"
+        return
+    end
+    
+    if not savedPosition then
+        returnBtn.Text = "❌ Guarda primero!"
+        wait(1)
+        returnBtn.Text = "🚫 Volver (Guarda primero)"
+        return
+    end
+    
+    if returning then
+        returning = false
+        stopCharacter()
+        humanoid.WalkSpeed = originalSpeed
+        returnBtn.Text = "🚀 Volver VOLANDO"
+        returnBtn.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
+        print("⏸️ Detenido")
+    else
+        -- Teletransportar hacia arriba
+        print("⬆️ Elevándose " .. teleportHeight .. " studs...")
+        rootPart.CFrame = rootPart.CFrame + Vector3.new(0, teleportHeight, 0)
+        
+        -- Guardar la altura de vuelo
+        flyingHeight = rootPart.Position.Y
+        print("✈️ Volando a altura Y = " .. flyingHeight)
+        
+        wait(0.1)
+        
+        -- Iniciar movimiento
+        returning = true
+        humanoid.WalkSpeed = walkSpeed
+        enableNoclip()
+        lockHeight()  -- Bloquear altura
+        
+        returnBtn.Text = "⏸️ Detener"
+        returnBtn.BackgroundColor3 = Color3.fromRGB(231, 76, 60)
+        
+        print("🚀 Volando hacia el spawn a velocidad:", walkSpeed)
+        
+        movementConnection = RunService.Heartbeat:Connect(function()
+            if not returning or not rootPart then 
+                if movementConnection then
+                    movementConnection:Disconnect()
+                    movementConnection = nil
+                end
+                return 
+            end
+            
+            -- Crear punto objetivo en el aire (misma altura) constantemente
+            local targetPosInAir = Vector3.new(savedPosition.Position.X, flyingHeight, savedPosition.Position.Z)
+            humanoid:MoveTo(targetPosInAir)
+            
+            -- Calcular distancia horizontal (ignorando Y)
+            local currentPos = rootPart.Position
+            local targetPos = savedPosition.Position
+            local horizontalDistance = math.sqrt(
+                (currentPos.X - targetPos.X)^2 + 
+                (currentPos.Z - targetPos.Z)^2
+            )
+            
+            if horizontalDistance < 8 then
+                returning = false
+                
+                -- DETENER TODO PRIMERO
+                if movementConnection then
+                    movementConnection:Disconnect()
+                    movementConnection = nil
+                end
+                
+                if heightLockConnection then
+                    heightLockConnection:Disconnect()
+                    heightLockConnection = nil
+                end
+                
+                disableNoclip()
+                flyingHeight = nil
+                
+                -- Detener movimiento completamente
+                humanoid:MoveTo(rootPart.Position)
+                rootPart.Velocity = Vector3.new(0, 0, 0)
+                rootPart.RotVelocity = Vector3.new(0, 0, 0)
+                
+                -- Restaurar velocidad normal
+                humanoid.WalkSpeed = originalSpeed
+                
+                -- Actualizar botón
+                returnBtn.Text = "✅ Vuelo desactivado"
+                returnBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
+                print("✅ VUELO DESACTIVADO - Ahora puedes caminar normalmente")
+                
+                spawn(function()
+                    wait(2)
+                    if not returning then
+                        returnBtn.Text = "🚀 Volver VOLANDO"
+                        returnBtn.BackgroundColor3 = Color3.fromRGB(52, 152, 219)
+                    end
+                end)
+            end
+        end)
+    end
+end)
+
+print("✅ Menú de Spawn con VUELO cargado!")
+print("🚀 Velocidad de vuelo: " .. walkSpeed)
+print("✈️ Altura de vuelo: +" .. teleportHeight .. " studs")
+print("💀 Protegido contra muerte")
