@@ -121,21 +121,21 @@ local speedCorner = Instance.new("UICorner")
 speedCorner.CornerRadius = UDim.new(0, 8)
 speedCorner.Parent = speedButton
 
--- Botón TP Tool
-local tpButton = Instance.new("TextButton")
-tpButton.Name = "TpButton"
-tpButton.Size = UDim2.new(0, 260, 0, 40)
-tpButton.Position = UDim2.new(0, 20, 0, 110)
-tpButton.BackgroundColor3 = Color3.fromRGB(100, 250, 150)
-tpButton.Text = "TP Tool"
-tpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-tpButton.TextSize = 16
-tpButton.Font = Enum.Font.GothamBold
-tpButton.Parent = mainFrame
+-- Botón Auto Steal (OP)
+local autoStealButton = Instance.new("TextButton")
+autoStealButton.Name = "AutoStealButton"
+autoStealButton.Size = UDim2.new(0, 260, 0, 40)
+autoStealButton.Position = UDim2.new(0, 20, 0, 110)
+autoStealButton.BackgroundColor3 = Color3.fromRGB(100, 250, 150)
+autoStealButton.Text = "Auto Steal (OP)"
+autoStealButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoStealButton.TextSize = 16
+autoStealButton.Font = Enum.Font.GothamBold
+autoStealButton.Parent = mainFrame
 
-local tpCorner = Instance.new("UICorner")
-tpCorner.CornerRadius = UDim.new(0, 8)
-tpCorner.Parent = tpButton
+local autoStealCorner = Instance.new("UICorner")
+autoStealCorner.CornerRadius = UDim.new(0, 8)
+autoStealCorner.Parent = autoStealButton
 
 -- Botón ESP
 local espButton = Instance.new("TextButton")
@@ -264,12 +264,12 @@ closeSubCorner.CornerRadius = UDim.new(0, 8)
 closeSubCorner.Parent = closeSubButton
 
 -- Variables
-local tpTool = nil
 local speedActive = false
 local jumpActive = false
 local espActive = false
 local espConnection = nil
 local fpsKillerActive = false
+local autoStealActive = false
 
 -- FUNCIÓN ESP PARA OG Y MEME
 local function aplicarESP(textLabel)
@@ -373,7 +373,31 @@ espButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- NUEVA FUNCIÓN: FPS Killer
+-- NUEVA FUNCIÓN: Auto Steal (OP)
+autoStealButton.MouseButton1Click:Connect(function()
+    if not autoStealActive then
+        autoStealButton.Text = "Cargando..."
+        autoStealButton.BackgroundColor3 = Color3.fromRGB(150, 255, 150)
+        
+        local success, error = pcall(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/Santi292992/Aimep3-Hub/refs/heads/main/Auto%20steal"))()
+        end)
+        
+        if success then
+            autoStealButton.Text = "Auto Steal ✓"
+            autoStealButton.BackgroundColor3 = Color3.fromRGB(50, 255, 50)
+            autoStealActive = true
+        else
+            autoStealButton.Text = "Error"
+            autoStealButton.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+            wait(2)
+            autoStealButton.Text = "Auto Steal (OP)"
+            autoStealButton.BackgroundColor3 = Color3.fromRGB(100, 250, 150)
+        end
+    end
+end)
+
+-- FUNCIÓN: FPS Killer
 fpsButton.MouseButton1Click:Connect(function()
     if not fpsKillerActive then
         fpsButton.Text = "Cargando..."
@@ -406,37 +430,6 @@ end)
 closeSubButton.MouseButton1Click:Connect(function()
     speedSubMenu.Visible = false
 end)
-
--- Función TP Tool
-local function createTPTool()
-    if tpTool then
-        tpTool:Destroy()
-        tpTool = nil
-        tpButton.BackgroundColor3 = Color3.fromRGB(100, 250, 150)
-        tpButton.Text = "TP Tool"
-        return
-    end
-    
-    tpTool = Instance.new("Tool")
-    tpTool.Name = "TP Tool"
-    tpTool.RequiresHandle = false
-    tpTool.CanBeDropped = false
-    
-    tpTool.Activated:Connect(function()
-        if mouse.Target then
-            local root = character:FindFirstChild("HumanoidRootPart")
-            if root then
-                root.CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
-            end
-        end
-    end)
-    
-    tpTool.Parent = player.Backpack
-    tpButton.BackgroundColor3 = Color3.fromRGB(150, 250, 100)
-    tpButton.Text = "TP: ON"
-end
-
-tpButton.MouseButton1Click:Connect(createTPTool)
 
 -- Función Server Hop
 serverButton.MouseButton1Click:Connect(function()
@@ -490,7 +483,6 @@ player.CharacterAdded:Connect(function(newCharacter)
     humanoid = character:WaitForChild("Humanoid")
     originalSpeed = humanoid.WalkSpeed
     originalJump = humanoid.UseJumpPower and humanoid.JumpPower or humanoid.JumpHeight
-    tpTool = nil
     speedActive = false
     jumpActive = false
 end)
