@@ -1,0 +1,400 @@
+-- SISTEMA DE SOLICITUD DE TRABAJO PARA ROBLOX
+-- Compatible con PC y Móvil - Pantalla Completa
+
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Ocultar todos los elementos de la interfaz de Roblox
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
+
+-- Crear ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "JobApplicationGui"
+screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screenGui.IgnoreGuiInset = true
+screenGui.DisplayOrder = 999999
+screenGui.Parent = playerGui
+
+-- Función para detectar si es móvil
+local function isMobile()
+    return UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+end
+
+-- Frame principal (pantalla completa)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(1, 0, 1, 0)
+mainFrame.Position = UDim2.new(0, 0, 0, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Contenedor de la hoja
+local sheetContainer = Instance.new("Frame")
+sheetContainer.Name = "SheetContainer"
+if isMobile() then
+    sheetContainer.Size = UDim2.new(1, -20, 1, -20)
+    sheetContainer.Position = UDim2.new(0, 10, 0, 10)
+else
+    sheetContainer.Size = UDim2.new(0, 850, 0, 1200)
+    sheetContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+    sheetContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+end
+sheetContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+sheetContainer.BorderSizePixel = 0
+sheetContainer.Parent = mainFrame
+
+-- Sombra de la hoja
+local sheetStroke = Instance.new("UIStroke")
+sheetStroke.Color = Color3.fromRGB(180, 180, 180)
+sheetStroke.Thickness = 1
+sheetStroke.Parent = sheetContainer
+
+-- ScrollingFrame para el contenido
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Name = "ScrollFrame"
+scrollFrame.Size = UDim2.new(1, 0, 1, 0)
+scrollFrame.Position = UDim2.new(0, 0, 0, 0)
+scrollFrame.BackgroundTransparency = 1
+scrollFrame.BorderSizePixel = 0
+scrollFrame.ScrollBarThickness = 10
+scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(150, 150, 150)
+scrollFrame.CanvasSize = UDim2.new(0, 0, 0, 1600)
+scrollFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+scrollFrame.ElasticBehavior = Enum.ElasticBehavior.Always
+scrollFrame.Parent = sheetContainer
+
+-- Padding para el contenido
+local padding = Instance.new("UIPadding")
+if isMobile() then
+    padding.PaddingTop = UDim.new(0, 20)
+    padding.PaddingLeft = UDim.new(0, 15)
+    padding.PaddingRight = UDim.new(0, 15)
+    padding.PaddingBottom = UDim.new(0, 20)
+else
+    padding.PaddingTop = UDim.new(0, 50)
+    padding.PaddingLeft = UDim.new(0, 60)
+    padding.PaddingRight = UDim.new(0, 60)
+    padding.PaddingBottom = UDim.new(0, 50)
+end
+padding.Parent = scrollFrame
+
+-- UIListLayout para organizar campos
+local listLayout = Instance.new("UIListLayout")
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Padding = UDim.new(0, 25)
+listLayout.Parent = scrollFrame
+
+-- Actualizar el CanvasSize automáticamente
+listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 100)
+end)
+
+-- Encabezado de la hoja
+local header = Instance.new("Frame")
+header.Name = "Header"
+if isMobile() then
+    header.Size = UDim2.new(1, -30, 0, 100)
+else
+    header.Size = UDim2.new(1, -120, 0, 120)
+end
+header.BackgroundTransparency = 1
+header.LayoutOrder = 1
+header.Parent = scrollFrame
+
+local companyName = Instance.new("TextLabel")
+companyName.Size = UDim2.new(1, 0, 0, 35)
+companyName.Position = UDim2.new(0, 0, 0, 0)
+companyName.BackgroundTransparency = 1
+companyName.Text = "EMPRESA ROBLOX S.A."
+companyName.TextColor3 = Color3.fromRGB(20, 20, 20)
+companyName.TextSize = isMobile() and 24 or 28
+companyName.Font = Enum.Font.GothamBold
+companyName.TextXAlignment = Enum.TextXAlignment.Center
+companyName.Parent = header
+
+local formTitle = Instance.new("TextLabel")
+formTitle.Size = UDim2.new(1, 0, 0, 45)
+formTitle.Position = UDim2.new(0, 0, 0, 40)
+formTitle.BackgroundTransparency = 1
+formTitle.Text = "SOLICITUD DE EMPLEO"
+formTitle.TextColor3 = Color3.fromRGB(40, 40, 40)
+formTitle.TextSize = isMobile() and 28 or 32
+formTitle.Font = Enum.Font.GothamBold
+formTitle.TextXAlignment = Enum.TextXAlignment.Center
+formTitle.Parent = header
+
+local divider = Instance.new("Frame")
+divider.Size = UDim2.new(1, 0, 0, 3)
+divider.Position = UDim2.new(0, 0, 1, -10)
+divider.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+divider.BorderSizePixel = 0
+divider.Parent = header
+
+-- Sección de Información Personal
+local seccionPersonal = Instance.new("TextLabel")
+seccionPersonal.Name = "SeccionPersonal"
+if isMobile() then
+    seccionPersonal.Size = UDim2.new(1, -30, 0, 35)
+else
+    seccionPersonal.Size = UDim2.new(1, -120, 0, 35)
+end
+seccionPersonal.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+seccionPersonal.Text = "  I. INFORMACIÓN PERSONAL"
+seccionPersonal.TextColor3 = Color3.fromRGB(0, 0, 0)
+seccionPersonal.TextSize = isMobile() and 14 or 18
+seccionPersonal.Font = Enum.Font.GothamBold
+seccionPersonal.TextXAlignment = Enum.TextXAlignment.Left
+seccionPersonal.BorderSizePixel = 1
+seccionPersonal.BorderColor3 = Color3.fromRGB(0, 0, 0)
+seccionPersonal.LayoutOrder = 2
+seccionPersonal.Parent = scrollFrame
+
+-- Función para crear campos de texto estilo formulario
+local function createFormField(labelText, placeholderText, order, multiline, required)
+    local container = Instance.new("Frame")
+    container.Name = labelText
+    if isMobile() then
+        container.Size = UDim2.new(1, -30, 0, multiline and 150 or 80)
+    else
+        container.Size = UDim2.new(1, -120, 0, multiline and 150 or 80)
+    end
+    container.BackgroundTransparency = 1
+    container.LayoutOrder = order
+    container.Parent = scrollFrame
+    
+    local labelContainer = Instance.new("Frame")
+    labelContainer.Size = UDim2.new(1, 0, 0, 25)
+    labelContainer.BackgroundTransparency = 1
+    labelContainer.Parent = container
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -20, 0, 25)
+    label.BackgroundTransparency = 1
+    label.Text = labelText .. (required and " *" or "")
+    label.TextColor3 = Color3.fromRGB(0, 0, 0)
+    label.TextSize = isMobile() and 13 or 17
+    label.Font = Enum.Font.GothamMedium
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextWrapped = true
+    label.Parent = labelContainer
+    
+    if required then
+        local asterisk = Instance.new("TextLabel")
+        asterisk.Size = UDim2.new(0, 20, 0, 25)
+        asterisk.Position = UDim2.new(1, -20, 0, 0)
+        asterisk.BackgroundTransparency = 1
+        asterisk.Text = "*"
+        asterisk.TextColor3 = Color3.fromRGB(200, 0, 0)
+        asterisk.TextSize = isMobile() and 16 or 20
+        asterisk.Font = Enum.Font.GothamBold
+        asterisk.Parent = labelContainer
+    end
+    
+    local textBox = Instance.new("TextBox")
+    textBox.Name = "Input"
+    textBox.Size = UDim2.new(1, 0, 0, multiline and 110 or 45)
+    textBox.Position = UDim2.new(0, 0, 0, 30)
+    textBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    textBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    textBox.BorderSizePixel = 2
+    textBox.PlaceholderText = placeholderText
+    textBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+    textBox.Text = ""
+    textBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+    textBox.TextSize = isMobile() and 13 or 17
+    textBox.Font = Enum.Font.Gotham
+    textBox.TextXAlignment = Enum.TextXAlignment.Left
+    textBox.TextYAlignment = multiline and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center
+    textBox.MultiLine = multiline or false
+    textBox.ClearTextOnFocus = false
+    textBox.TextWrapped = true
+    textBox.Parent = container
+    
+    local boxPadding = Instance.new("UIPadding")
+    boxPadding.PaddingLeft = UDim.new(0, isMobile() and 8 or 12)
+    boxPadding.PaddingRight = UDim.new(0, isMobile() and 8 or 12)
+    boxPadding.PaddingTop = UDim.new(0, multiline and 12 or 8)
+    boxPadding.PaddingBottom = UDim.new(0, 8)
+    boxPadding.Parent = textBox
+    
+    return textBox
+end
+
+-- Campos de Información Personal
+local nombreInput = createFormField("Nombre completo", "Escriba su nombre completo", 3, false, true)
+local edadInput = createFormField("Edad", "Escriba su edad", 4, false, true)
+local identificacionInput = createFormField("Número de identificación", "DNI, Cédula, Pasaporte, etc.", 5, false, false)
+local telefonoInput = createFormField("Teléfono de contacto", "Número de teléfono", 6, false, false)
+local emailInput = createFormField("Correo electrónico", "ejemplo@correo.com", 7, false, false)
+local direccionInput = createFormField("Dirección de residencia", "Calle, número, ciudad, país", 8, true, false)
+
+-- Sección de Experiencia Laboral
+local seccionExperiencia = Instance.new("TextLabel")
+seccionExperiencia.Name = "SeccionExperiencia"
+if isMobile() then
+    seccionExperiencia.Size = UDim2.new(1, -30, 0, 35)
+else
+    seccionExperiencia.Size = UDim2.new(1, -120, 0, 35)
+end
+seccionExperiencia.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+seccionExperiencia.Text = "  II. EXPERIENCIA LABORAL"
+seccionExperiencia.TextColor3 = Color3.fromRGB(0, 0, 0)
+seccionExperiencia.TextSize = isMobile() and 14 or 18
+seccionExperiencia.Font = Enum.Font.GothamBold
+seccionExperiencia.TextXAlignment = Enum.TextXAlignment.Left
+seccionExperiencia.BorderSizePixel = 1
+seccionExperiencia.BorderColor3 = Color3.fromRGB(0, 0, 0)
+seccionExperiencia.LayoutOrder = 9
+seccionExperiencia.Parent = scrollFrame
+
+local experienciaInput = createFormField("Describa su experiencia laboral previa", "Empleos anteriores, responsabilidades, logros, etc.", 10, true, false)
+local habilidadesInput = createFormField("Habilidades y competencias", "Liste sus habilidades relevantes para el puesto", 11, true, false)
+
+-- Sección de Motivación
+local seccionMotivacion = Instance.new("TextLabel")
+seccionMotivacion.Name = "SeccionMotivacion"
+if isMobile() then
+    seccionMotivacion.Size = UDim2.new(1, -30, 0, 50)
+    seccionMotivacion.TextWrapped = true
+else
+    seccionMotivacion.Size = UDim2.new(1, -120, 0, 35)
+end
+seccionMotivacion.BackgroundColor3 = Color3.fromRGB(230, 230, 230)
+seccionMotivacion.Text = "  III. MOTIVACIÓN Y DISPONIBILIDAD"
+seccionMotivacion.TextColor3 = Color3.fromRGB(0, 0, 0)
+seccionMotivacion.TextSize = isMobile() and 14 or 18
+seccionMotivacion.Font = Enum.Font.GothamBold
+seccionMotivacion.TextXAlignment = Enum.TextXAlignment.Left
+seccionMotivacion.TextYAlignment = Enum.TextYAlignment.Top
+seccionMotivacion.BorderSizePixel = 1
+seccionMotivacion.BorderColor3 = Color3.fromRGB(0, 0, 0)
+seccionMotivacion.LayoutOrder = 12
+seccionMotivacion.Parent = scrollFrame
+
+local motivacionInput = createFormField("¿Por qué desea trabajar en nuestra empresa?", "Explique sus motivaciones e interés en el puesto", 13, true, true)
+local disponibilidadInput = createFormField("Disponibilidad horaria", "Indique su disponibilidad de horarios", 14, true, false)
+local salarioInput = createFormField("Expectativa salarial", "Indique su expectativa salarial (opcional)", 15, false, false)
+
+-- Nota de campos obligatorios
+local notaObligatoria = Instance.new("TextLabel")
+notaObligatoria.Name = "NotaObligatoria"
+if isMobile() then
+    notaObligatoria.Size = UDim2.new(1, -30, 0, 30)
+else
+    notaObligatoria.Size = UDim2.new(1, -120, 0, 30)
+end
+notaObligatoria.BackgroundTransparency = 1
+notaObligatoria.Text = "* Campos obligatorios"
+notaObligatoria.TextColor3 = Color3.fromRGB(200, 0, 0)
+notaObligatoria.TextSize = isMobile() and 12 or 15
+notaObligatoria.Font = Enum.Font.GothamItalic
+notaObligatoria.TextXAlignment = Enum.TextXAlignment.Left
+notaObligatoria.LayoutOrder = 16
+notaObligatoria.Parent = scrollFrame
+
+-- Botón de enviar
+local submitButton = Instance.new("TextButton")
+submitButton.Name = "SubmitButton"
+if isMobile() then
+    submitButton.Size = UDim2.new(1, -30, 0, 55)
+else
+    submitButton.Size = UDim2.new(1, -120, 0, 55)
+end
+submitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+submitButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+submitButton.BorderSizePixel = 2
+submitButton.Text = "ENVIAR SOLICITUD"
+submitButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitButton.TextSize = isMobile() and 16 or 20
+submitButton.Font = Enum.Font.GothamBold
+submitButton.LayoutOrder = 17
+submitButton.Parent = scrollFrame
+
+-- Función para validar y enviar
+local function submitApplication()
+    local nombre = nombreInput.Text
+    local edad = edadInput.Text
+    local motivacion = motivacionInput.Text
+    
+    -- Validar campos obligatorios
+    if nombre == "" or edad == "" or motivacion == "" then
+        submitButton.Text = "ERROR: COMPLETE LOS CAMPOS OBLIGATORIOS (*)"
+        submitButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+        wait(3)
+        submitButton.Text = "ENVIAR SOLICITUD"
+        submitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+        return
+    end
+    
+    -- Mostrar confirmación
+    submitButton.Text = "✓ SOLICITUD ENVIADA CORRECTAMENTE"
+    submitButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    
+    -- Imprimir datos en consola
+    print("=========================================")
+    print("    SOLICITUD DE EMPLEO RECIBIDA")
+    print("=========================================")
+    print("Usuario Roblox: " .. player.Name)
+    print("")
+    print("--- INFORMACIÓN PERSONAL ---")
+    print("Nombre: " .. nombre)
+    print("Edad: " .. edad)
+    print("Identificación: " .. identificacionInput.Text)
+    print("Teléfono: " .. telefonoInput.Text)
+    print("Email: " .. emailInput.Text)
+    print("Dirección: " .. direccionInput.Text)
+    print("")
+    print("--- EXPERIENCIA LABORAL ---")
+    print("Experiencia: " .. experienciaInput.Text)
+    print("Habilidades: " .. habilidadesInput.Text)
+    print("")
+    print("--- MOTIVACIÓN Y DISPONIBILIDAD ---")
+    print("Motivación: " .. motivacion)
+    print("Disponibilidad: " .. disponibilidadInput.Text)
+    print("Salario esperado: " .. salarioInput.Text)
+    print("=========================================")
+    
+    wait(3)
+    
+    -- Reiniciar formulario
+    nombreInput.Text = ""
+    edadInput.Text = ""
+    identificacionInput.Text = ""
+    telefonoInput.Text = ""
+    emailInput.Text = ""
+    direccionInput.Text = ""
+    experienciaInput.Text = ""
+    habilidadesInput.Text = ""
+    motivacionInput.Text = ""
+    disponibilidadInput.Text = ""
+    salarioInput.Text = ""
+    submitButton.Text = "ENVIAR SOLICITUD"
+    submitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+    
+    -- Volver al inicio del formulario
+    scrollFrame.CanvasPosition = Vector2.new(0, 0)
+end
+
+-- Evento del botón
+submitButton.MouseButton1Click:Connect(submitApplication)
+
+-- Efecto hover para botón (solo PC)
+if not isMobile() then
+    submitButton.MouseEnter:Connect(function()
+        submitButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+    end)
+    
+    submitButton.MouseLeave:Connect(function()
+        submitButton.BackgroundColor3 = Color3.fromRGB(0, 120, 0)
+    end)
+end
+
+print("Sistema de Solicitud de Trabajo cargado - Pantalla Completa")
+print("Formulario visible en pantalla")
